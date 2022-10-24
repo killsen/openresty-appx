@@ -1,0 +1,9 @@
+_bk
+.rocks
+lua_modules/clib
+lua_modules/lua
+lua_modules/lualib
+lua_modules/resty
+lua_types
+nginx/temp
+nginx/logs
