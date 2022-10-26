@@ -18,6 +18,15 @@
         "*.api": "lua",
     },
 
+    "json.schemas": [
+        {
+            "url": "https://raw.githubusercontent.com/killsen/openresty-orpm/main/schema.json",
+            "fileMatch": [
+                ".orpmrc"
+            ]
+        }
+    ],
+
     "workbench.tree.indent": 22,
 
     "files.insertFinalNewline": true,
