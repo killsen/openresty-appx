@@ -1,4 +1,7 @@
 {
+    "version":  "0.1.4",
+    "license":  "MIT",
+    "homepage":  "https://github.com/killsen/openresty-appx",
     "app_name":  "demo",
     "openresty_ver":  "1.21.4.1",
     "luarocks_ver":  "3.9.1",
