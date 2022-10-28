@@ -91,26 +91,26 @@ __.debug = function()
         return ngx.exit(403)
     end
 
+    -- 运行的lua文件
+    local file_name = ngx.var.http_file_name
+    if not file_name or file_name == "" then
+        return ngx.exit(403)
+    end
+
     -- 程序名称
     local app_name = ngx.var.http_app_name
     if app_name and app_name ~= "" then
         ngx.ctx.app_name = app_name
     end
 
-    -- 运行的lua文件
-    local file_name = ngx.var.http_file_name
-
     local pok, func
 
-    if file_name and file_name ~= "" then
-        pok, func = pcall(loadfile, file_name)
-    else
-        if ngx.req.get_method() ~= "POST" then
-            return ngx.exit(403)
-        end
+    if ngx.req.get_method() == "POST" then
         ngx.req.read_body()
         local codes = ngx.req.get_body_data()
         pok, func = pcall(loadstring, codes)
+    else
+        pok, func = pcall(loadfile, file_name)
     end
 
     if not pok then
