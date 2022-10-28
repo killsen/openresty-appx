@@ -82,4 +82,35 @@ __.main = function()
 
 end
 
+-- 程序调试 v22.10.28 by Killsen ------------------
+__.debug = function()
+
+    -- 仅用于本机调试
+    if ngx.var.remote_addr ~= "127.0.0.1" or
+        ngx.var.http_user_agent ~= "sublime" or
+        ngx.req.get_method() ~= "POST" then
+        return ngx.exit(403)
+    end
+
+    -- 程序名称
+    local app_name = ngx.var.http_app_name
+    if app_name and app_name ~= "" then
+        ngx.ctx.app_name = app_name
+    end
+
+    ngx.req.read_body()
+    local body = ngx.req.get_body_data()
+
+    local pok, func = pcall(loadstring, body)
+    if not pok then
+        return ngx.say(func)
+    end
+
+    local pok, err = pcall(func)
+    if not pok then
+        return ngx.say(err)
+    end
+
+end
+
 return __
