@@ -182,7 +182,7 @@ local function get_debug_mod(mod)
 end
 
 -- 执行程序
-local function _run_app ( app, is_sublime )
+local function _run_app ( app, is_debug )
 
     -- 获取path
     local path = split (ngx.var.uri, "/")
@@ -200,7 +200,7 @@ local function _run_app ( app, is_sublime )
 
     local mod, argx, actx, auth, _url
 
-    if is_sublime then
+    if is_debug then
         mod = app.load("act." .. action_name, true)
         mod = get_debug_mod(mod) -- 通过调试代码创建模块
     else
@@ -292,20 +292,11 @@ end
 -- 程序入口
 local function run_app ( app )
 
-    -- 是否sublime测试 v18.10.24
-    local is_sublime = ngx.var.remote_addr  == "127.0.0.1" and
-                       ngx.req.get_headers()["user-agent"] == "sublime"
-    local is_debug   = is_sublime and ngx.req.get_method() == "GET"
+    -- 是否调试
+    local is_debug = ngx.var.remote_addr == "127.0.0.1" and
+                     ngx.var.http_user_agent == "sublime"
 
-    if is_debug then require "mobdebug".start() end
-
-    if ngx.var.lua_debug == "on" then require "LuaDebug".start() end
-
-    --[[ 程序入口 ]] _run_app ( app, is_sublime )
-
-    if ngx.var.lua_debug == "on" then require "LuaDebug".stop() end
-
-    if is_debug then require "mobdebug".done() end
+    _run_app ( app, is_debug )
 
 end
 

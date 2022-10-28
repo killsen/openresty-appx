@@ -12,7 +12,7 @@ app.db_config  = {
     host       = "127.0.0.1"    -- 服务器IP
 ,   port       = 3306           -- 服务器端口
 ,   user       = "root"         -- 登录账号
-,   password   = "*****"        -- 登录密码
+,   password   = "sumdoo"        -- 登录密码
 ,   database   = "demo_db"      -- 默认数据库
 }
 

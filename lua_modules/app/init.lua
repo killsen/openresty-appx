@@ -87,8 +87,7 @@ __.debug = function()
 
     -- 仅用于本机调试
     if ngx.var.remote_addr ~= "127.0.0.1" or
-        ngx.var.http_user_agent ~= "sublime" or
-        ngx.req.get_method() ~= "POST" then
+        ngx.var.http_user_agent ~= "sublime" then
         return ngx.exit(403)
     end
 
@@ -98,10 +97,22 @@ __.debug = function()
         ngx.ctx.app_name = app_name
     end
 
-    ngx.req.read_body()
-    local body = ngx.req.get_body_data()
+    -- 运行的lua文件
+    local file_name = ngx.var.http_file_name
 
-    local pok, func = pcall(loadstring, body)
+    local pok, func
+
+    if file_name and file_name ~= "" then
+        pok, func = pcall(loadfile, file_name)
+    else
+        if ngx.req.get_method() ~= "POST" then
+            return ngx.exit(403)
+        end
+        ngx.req.read_body()
+        local codes = ngx.req.get_body_data()
+        pok, func = pcall(loadstring, codes)
+    end
+
     if not pok then
         return ngx.say(func)
     end
