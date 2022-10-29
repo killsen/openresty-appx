@@ -7,7 +7,7 @@
         {
             "type": "emmylua_attach",
             "request": "attach",
-            "name": "nginx",
+            "name": "NGINX",
             "pid": 0,
             "processName": "nginx.exe",
             "captureLog": false
