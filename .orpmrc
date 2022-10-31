@@ -1,5 +1,5 @@
 {
-    "version":  "0.1.9",
+    "version":  "0.1.10",
     "license":  "MIT",
     "homepage":  "https://github.com/killsen/openresty-appx",
     "app_name":  "demo",
@@ -15,8 +15,8 @@
                  "thibaultcha/lua-resty-mlcache":  "2.6.0",
                  "hamishforbes/lua-resty-iputils":  "v0.3.0",
                  "ledgetech/lua-resty-http":  "v0.16.1",
-                 "guosiu/lua-resty-date":  "v2.2",
                  "agentzh/lua-resty-multipart-parser":  "master",
-                 "golgote/lua-resty-info":  "master"
+                 "golgote/lua-resty-info":  "master",
+                 "bungle/lua-resty-random":  "master"
              }
 }
