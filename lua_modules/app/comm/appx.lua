@@ -122,14 +122,30 @@ function _M:action()
     actx.do_action(self.name)
 end
 
--- 创建单个表
+-- 重新建表
 function _M:init_dao ()
-    daox.init_dao(self.name)
+
+    local args = ngx.req.get_uri_args()
+
+    daox.init_dao {
+        app_name    = self.name,
+        dao_name    = args.name,
+        drop_nonce = tonumber(args.drop),
+    }
+
 end
 
--- 创建全部表
+-- 升级表结构
 function _M:init_daos ()
-    daox.init_daos(self.name)
+
+    local args = ngx.req.get_uri_args()
+
+    daox.init_daos {
+        app_name    = self.name,
+        add_column  = args.add_column  and true or false,
+        drop_column = args.drop_column and true or false,
+    }
+
 end
 
 function _M:gen_api_code ()

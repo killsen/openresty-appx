@@ -18,25 +18,25 @@ end
 -- 创建表
 local function init_dao(app_name, dao_name, drop_nonce)
 
-    -- 只能本机执行
+    ngx.header['content-type'] = "text/plain"
+
     if "127.0.0.1" ~= ngx.var.remote_addr then
-        ngx.exit(404)
+        echo "该操作只能在本机执行"
         return
     end
 
     local app = require "app.comm.appx".new(app_name)
-    if not app then return ngx.exit(404) end
-
-    local args = ngx.req.get_uri_args()
-
-    dao_name    = dao_name or args.name
-    drop_nonce  = tonumber(drop_nonce or args.drop)
+    if not app then
+        echo "加载APP失败"
+        return
+    end
 
     local to_drop_table = drop_nonce == LAST_DROP_NONCE
     LAST_DROP_NONCE = ngx.now() * 1000
 
     if type(dao_name) ~= "string" or dao_name == "" then
-        return ngx.exit(404)
+        echo "DAO名称不能为空"
+        return
     end
 
     local db   = app.db
@@ -166,6 +166,8 @@ local function init_dao(app_name, dao_name, drop_nonce)
     end
 
     db.close()
+
+    return true
 
 end
 

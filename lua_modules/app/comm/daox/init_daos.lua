@@ -180,23 +180,20 @@ end
 
 local function init_daos(app_name, add_column, drop_column)
 
-    -- 只能本机执行
+    ngx.header['content-type'] = "text/plain"
+
     if "127.0.0.1" ~= ngx.var.remote_addr then
-        ngx.exit(404)
+        echo "该操作只能在本机执行"
         return
     end
 
     local app = require "app.comm.appx".new(app_name)
-    if not app then return ngx.exit(404) end
+    if not app then
+        echo "加载APP失败"
+        return
+    end
 
     app_name = app.name
-
-    local args = ngx.req.get_uri_args()
-
-    add_column  = add_column  or args.add_column     -- 是否要添加列
-    drop_column = drop_column or args.drop_column    -- 是否要删除列
-
-    ngx.header['content-type'] = "text/plain"
 
     local url = "http://" .. ngx.var.http_host .. "/" .. app_name .. "/initdaos"
 
@@ -221,6 +218,8 @@ local function init_daos(app_name, add_column, drop_column)
         local ok = upgrade_table(app_name, dao_name, index, add_column, drop_column)
         if not ok then return end
     end
+
+    return true
 
 end
 
