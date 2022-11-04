@@ -110,7 +110,7 @@ local function _codes(api)
 
 end
 
-return function(app_name, base_path, base_name)
+return function(app_name, base_path, base_name, args)
 
     local app = require "app.comm.appx".new(app_name)
     if not app then return ngx.exit(404) end
@@ -120,7 +120,7 @@ return function(app_name, base_path, base_name)
     base_path = base_path or ("app/" .. app_name .. "/api/")
     base_name = base_name or  ""
 
-    local args = ngx.req.get_uri_args()
+    args = args or ngx.req.get_uri_args()
     local api = args.api
 
     local query = ngx.encode_args(args)

@@ -551,7 +551,7 @@ local function gen_function_only(name, func)
 
 end
 
-return function(app_name, base_path, base_name)
+return function(app_name, base_path, base_name, args)
 
     local app = require "app.comm.appx".new(app_name)
     if not app then return ngx.exit(404) end
@@ -568,7 +568,7 @@ return function(app_name, base_path, base_name)
     local namespace_loaded = {}  -- 已加载的命名空间
     local dao_loaded       = {}  -- 已加载的dao接口
 
-    local args = ngx.req.get_uri_args()
+    args = args or ngx.req.get_uri_args()
 
     if type(args.base) == "string" and args.base ~= "" then
         base_path = base_path .. args.base .. "/"

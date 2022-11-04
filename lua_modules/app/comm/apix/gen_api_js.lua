@@ -28,7 +28,7 @@ local function _namespace(name, namespace_loaded)
 
 end
 
-return function(app_name, base_path, base_name)
+return function(app_name, base_path, base_name, args)
 
     local app = require "app.comm.appx".new(app_name)
     if not app then return ngx.exit(404) end
@@ -44,7 +44,7 @@ return function(app_name, base_path, base_name)
     local list = {}
     local namespace_loaded = {}
 
-    local args = ngx.req.get_uri_args()
+    args = args or ngx.req.get_uri_args()
 
     if type(args.base) == "string" and args.base ~= "" then
         base_path = base_path .. args.base .. "/"
