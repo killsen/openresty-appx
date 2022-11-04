@@ -24,9 +24,11 @@ local function init_dao(app_name, dao_name, drop_nonce)
         return
     end
 
+    local app = require "app.comm.appx".new(app_name)
+    if not app then return ngx.exit(404) end
+
     local args = ngx.req.get_uri_args()
 
-    app_name    = app_name or ngx.ctx.app_name
     dao_name    = dao_name or args.name
     drop_nonce  = tonumber(drop_nonce or args.drop)
 
@@ -37,8 +39,6 @@ local function init_dao(app_name, dao_name, drop_nonce)
         return ngx.exit(404)
     end
 
-    local appx = require "app.comm.appx"
-    local app  = appx.new(app_name)
     local db   = app.db
     local dao  = app:load("$" .. dao_name)
 

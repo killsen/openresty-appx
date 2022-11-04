@@ -29,9 +29,12 @@ end
 
 local function load_acts (app_name)
 
+    local app = require "app.comm.appx".new(app_name)
+    if not app then return {} end
+
     local list = {}
-    local path = "app/" .. app_name .. "/act/"
-    local name = "app." .. app_name .. ".act."
+    local path = "app/" .. app.name .. "/act/"
+    local name = "app." .. app.name .. ".act."
 
     load_path (list, path, "")
 

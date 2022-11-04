@@ -186,13 +186,15 @@ local function init_daos(app_name, add_column, drop_column)
         return
     end
 
+    local app = require "app.comm.appx".new(app_name)
+    if not app then return ngx.exit(404) end
+
+    app_name = app.name
+
     local args = ngx.req.get_uri_args()
 
-    app_name    = app_name    or ngx.ctx.app_name
     add_column  = add_column  or args.add_column     -- 是否要添加列
     drop_column = drop_column or args.drop_column    -- 是否要删除列
-
-    local app = require "app.comm.appx".new(app_name)
 
     ngx.header['content-type'] = "text/plain"
 

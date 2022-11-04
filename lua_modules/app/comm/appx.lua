@@ -5,6 +5,7 @@ local actx          = require "app.comm.actx"
 local apix          = require "app.comm.apix"
 local load_mod      = require "app.comm.load_mod"
 local _cleart       = require "table.clear"
+local _lower        = string.lower
 
 local _M = {}
 local mt = { __index = _M }
@@ -43,13 +44,11 @@ rawset(_G, "_load", _load)
 -- 创建应用
 function _M.new (app_name)  --@@
 
-    if app_name then
-        ngx.ctx.app_name = app_name
-    else
-        app_name = ngx.ctx.app_name
-    end
-
+    app_name = app_name or ngx.ctx.app_name
     if type(app_name) ~= "string" or app_name == "" then return end
+
+    app_name = _lower(app_name)  -- 转小写
+    ngx.ctx.app_name = app_name
 
     local app = APPS[app_name]
     if app then return app end
@@ -58,13 +57,14 @@ function _M.new (app_name)  --@@
     local conf = require("app." .. app_name)
     if type(conf) ~= "table" then return end
 
+    -- 加载 db 库
     package.loaded["app.lib.db"] = nil
     local db = require "app.lib.db"
     package.loaded["app.lib.db"] = nil
     db.load(conf.db_config, conf.db_slave)
 
     app = {
-        name        = conf.name or app_name,
+        name        = app_name,
         title       = conf.title or app_name,
         ver         = conf.ver,
         db_config   = conf.db_config,

@@ -122,6 +122,7 @@ local function do_action (app_name, uri)
     -- 延时加载 appx 避免相互应用
     if APPX == nil then APPX = require "app.comm.appx" end
     local app = APPX.new(app_name)
+    if not app then return ngx.exit(404) end
 
     -- 获取path
     local path = _split (uri or ngx.var.uri, "/")

@@ -553,15 +553,10 @@ end
 
 return function(app_name, base_path, base_name)
 
-    if app_name then
-        ngx.ctx.app_name = app_name
-    else
-        app_name = ngx.ctx.app_name
-    end
+    local app = require "app.comm.appx".new(app_name)
+    if not app then return ngx.exit(404) end
 
-    if type(app_name) ~= "string" or app_name == ""  then
-        return ngx.exit(404)
-    end
+    app_name = app.name
 
     base_path = base_path or ("app/" .. app_name .. "/api/")
     base_name = base_name or  "api."

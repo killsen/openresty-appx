@@ -43,8 +43,11 @@ end
 
 local function reload_app(app_name)
 
-    local path = "app/" .. app_name
-    local name = "app." .. app_name
+    local app = require "app.comm.appx".new(app_name)
+    if not app then return ngx.exit(404) end
+
+    local path = "app/" .. app.name
+    local name = "app." .. app.name
 
     ngx.header["content-type"] = "text/plain"
 

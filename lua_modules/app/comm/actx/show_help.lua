@@ -2,6 +2,7 @@
 local function show_help(app_name)
 
     local app = require "app.comm.appx".new(app_name)
+    if not app then return ngx.exit(404) end
 
     local template  = require "resty.template"
     local help_html = require "app.comm.actx.help_html"
