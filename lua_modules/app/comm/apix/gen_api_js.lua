@@ -36,6 +36,10 @@ return function(app_name, base_path, base_name)
         app_name = ngx.ctx.app_name
     end
 
+    if type(app_name) ~= "string" or app_name == ""  then
+        return ngx.exit(404)
+    end
+
     base_path = base_path or ("app/" .. app_name .. "/api/")
     base_name = base_name or  "api."
 
