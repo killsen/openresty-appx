@@ -11,9 +11,7 @@ local ipairs    = ipairs
 local ssub      = string.sub
 
 -- 生成参数校验函数接口
-local gen_valid_func = require "app.utils.gen_valid_func"
-
----------------------------------------------------
+local gen_valid_func = require "app.comm.apix.gen_valid_func"
 
 -- 模块懒加载
 local function lazy_load (mod_name)

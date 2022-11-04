@@ -1,15 +1,10 @@
 
--- 加载 dao 列表 v17.07.27 by Killsen ------------------
-
-local require     = require
-local file_list   = require "app.utils".file_list   -- lua文件列表
-local err_log     = require "app.utils".err_log     -- 错误日志输出
-local init_fields = require "app.comm.init_fields"  -- 初始化列定义
-
----------------------------------------------------
-
--- 载入dao模块
+-- 加载 dao 列表
 local function load_daos (app_name)
+
+    local file_list   = require "app.comm.utils".file_list   -- lua文件列表
+    local err_log     = require "app.comm.utils".err_log     -- 错误日志输出
+    local init_fields = require "app.comm.daox.init_fields"  -- 初始化列定义
 
     local app_daos = {}
     local dao_path = "app/" .. app_name .. "/dao/"

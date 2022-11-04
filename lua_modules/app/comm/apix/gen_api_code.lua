@@ -1,9 +1,9 @@
 
 -- 生成参数校验函数代码 v21.08.30
 
-local gen_valid_code    = require "app.utils.gen_valid_code"
-local file_list         = require "app.utils".file_list
-local path_list         = require "app.utils".path_list
+local gen_valid_code    = require "app.comm.apix.gen_valid_code"
+local file_list         = require "app.comm.utils".file_list
+local path_list         = require "app.comm.utils".path_list
 
 local _split            = require "ngx.re".split
 local _insert           = table.insert
@@ -193,9 +193,9 @@ ngx.say [[
     load_path (list, base_path, "")
     table.sort(list)
 
-    local url1 = "/" .. app_name .. "/_.gen_api_code.lpage" .. query
-    local url2 = "/" .. app_name .. "/_.gen_api_ts.lpage"   .. query
-    local url3 = "/" .. app_name .. "/_.gen_api_js.lpage"   .. query
+    local url1 = "/" .. app_name .. "/api"      .. query
+    local url2 = "/" .. app_name .. "/api.d.ts" .. query
+    local url3 = "/" .. app_name .. "/api.js"   .. query
 
     ngx.say("<h2>", app_name, "项目API列表")
 
@@ -206,10 +206,10 @@ ngx.say [[
     local base_list = path_list("app/" .. app_name .. "/api")
     if #base_list > 0 then
         ngx.say("<h3>")
-        local url = "/" .. app_name .. "/_.gen_api_code.lpage"
+        local url = "/" .. app_name .. "/api"
         ngx.say('   <a href="', url,'"', ">", "全部", "</a>")
         for _, base in ipairs(base_list) do
-            url = "/" .. app_name .. "/_.gen_api_code.lpage?base=" .. base
+            url = "/" .. app_name .. "/api?base=" .. base
             ngx.say([[<span style="margin-left: 10px;"> | <span>]])
             ngx.say('   <a style="margin-left: 10px;" href="', url,'"', ">", base, "</a>")
         end

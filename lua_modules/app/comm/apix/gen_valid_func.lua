@@ -1,7 +1,7 @@
 
 -- 生成参数校验函数接口 v20.10.22
 
-local gen_valid_code = require "app.utils.gen_valid_code"
+local gen_valid_code = require "app.comm.apix.gen_valid_code"
 local type           = type
 local pcall          = pcall
 local loadstring     = loadstring

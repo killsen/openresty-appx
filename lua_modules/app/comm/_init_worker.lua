@@ -32,6 +32,5 @@ ngx.log(ngx.ERR ,   ", index="  , index
                 ,   ", pid="    , ngx.worker.pid()
 )
 
--- 初始化 apps v20.08.30
-local init_apps  = require "app.comm.init_apps"
-init_apps()
+-- 启动后台任务
+pcall(require, "app.comm.run_tasks")

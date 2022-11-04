@@ -2,9 +2,9 @@
 -- 重载模块 v18.01.06 by Killsen ------------------
 
 local require   = require
-local lfs       = require "lfs"                 -- LuaFileSystem
-local file_name = require "app.utils".file_name -- 获取文件名
-local exe_name  = require "app.utils".exe_name  -- 获取扩展名
+local lfs       = require "lfs"                         -- LuaFileSystem
+local file_name = require "app.comm.utils".file_name    -- 获取文件名
+local exe_name  = require "app.comm.utils".exe_name     -- 获取扩展名
 
 ---------------------------------------------------
 

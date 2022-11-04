@@ -150,12 +150,11 @@ end
 
 
 -- 载入设置
-function _M._on_load(app)
+function _M.load(db_config, db_slave)
 
-    if "table" ~= type(app          ) then return end
-    if "table" ~= type(app.db_config) then return end
+    if "table" ~= type(db_config) then return end
 
-    for k, v in  pairs(app.db_config) do
+    for k, v in pairs(db_config) do
         DB_CONFIG[k] = v
     end
 
@@ -166,20 +165,17 @@ function _M._on_load(app)
     DB_MASTER = DB_CONFIG
 
     -- 从库（只读）
-    if type(app.db_slave) == "table" then
-        DB_SLAVE = _clone(app.db_slave)
-
-        for k, v in  pairs(DB_MASTER) do
-            if DB_SLAVE[k] == nil then
-                DB_SLAVE[k] = v
-            end
+    if type(db_slave) == "table" then
+        DB_SLAVE = _clone(DB_CONFIG)
+        for k, v in pairs(db_slave) do
+            DB_SLAVE[k] = v
         end
     end
 
 end
 
 -- 注册卸载事件
-function _M._on_unload()
+function _M.unload()
 
     if ngx.ctx[_M] then
         for _, db in pairs(ngx.ctx[_M]) do

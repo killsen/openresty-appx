@@ -1,8 +1,7 @@
 
-local err_log   = require "app.utils".err_log  -- 错误日志输出
-local load_app  = require "app.comm.load_app"
-
 local __ = {}
+
+local appx = require "app.comm.appx"
 
 __.info = function()
     local pok, resty_info = pcall(require, "resty.info")
@@ -39,27 +38,28 @@ end
 -- 帮助文档 v20.08.21 by Killsen ------------------
 __.help = function()
 
-    -- 程序名称
     local  app_name = ngx.var.app_name
-    if not app_name then return ngx.exit(404) end
-
-    -- 接口名称
     local  act_type = ngx.var.act_type
+
+    if not app_name then return ngx.exit(404) end
     if not act_type then return ngx.exit(404) end
 
     ngx.ctx.app_name = app_name
     ngx.ctx.act_type = act_type
 
-    -- 加载程序
-    local  app = load_app()
+    local app  = appx.new(app_name)
     if not app then return ngx.exit(404) end
 
-    -- 加载接口
-    local  fun = app[act_type]
-    if not fun then return ngx.exit(404) end
-
-    -- 运行程序
-    xpcall(fun, err_log)
+        if act_type == "help"     then app:help()
+    elseif act_type == "reload"   then app:reload()
+    elseif act_type == "initdao"  then app:init_dao()
+    elseif act_type == "initdaos" then app:init_daos()
+    elseif act_type == "api"      then app:gen_api_code()
+    elseif act_type == "api.d.ts" then app:gen_api_ts()
+    elseif act_type == "api.js"   then app:gen_api_js()
+    else
+        ngx.exit(404)
+    end
 
 end
 
@@ -70,15 +70,12 @@ __.main = function()
     local  app_name = ngx.var.app_name
     if not app_name then return ngx.exit(404) end
 
-    -- 程序名称
     ngx.ctx.app_name = app_name
 
-    -- 加载程序
-    local  app = load_app()
+    local app  = appx.new(app_name)
     if not app then return ngx.exit(404) end
 
-    -- 运行程序
-    xpcall(app.run, err_log)
+    app:action(ngx.var.uri)
 
 end
 

@@ -1,6 +1,5 @@
 
-local _new_app = require "app.comm.new_app"
-local      app = _new_app() -- 创建app
+local app = {}
 ---------------------------------------------------
 
 app.name       = "demo"

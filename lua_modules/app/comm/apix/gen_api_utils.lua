@@ -1,6 +1,6 @@
 
-local file_list = require "app.utils".file_list
-local path_list = require "app.utils".path_list
+local file_list = require "app.comm.utils".file_list
+local path_list = require "app.comm.utils".path_list
 
 local _split    = require "ngx.re".split
 local _insert   = table.insert

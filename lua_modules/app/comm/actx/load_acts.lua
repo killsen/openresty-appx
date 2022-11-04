@@ -4,8 +4,8 @@
 local require   = require
 local _insert   = table.insert
 
-local file_list = require "app.utils".file_list  -- 文件列表
-local path_list = require "app.utils".path_list  -- 目录列表
+local file_list = require "app.comm.utils".file_list  -- 文件列表
+local path_list = require "app.comm.utils".path_list  -- 目录列表
 
 ---------------------------------------------------
 

@@ -1,12 +1,5 @@
 
--- 显示帮助文档 v20.07.31 by Killsen ------------------
-
-local templ        = require "resty.template"
-local templ_render = templ.render
-local _load_daos   = require "app.comm.load_daos"
-local _load_acts   = require "app.comm.load_acts"
-
-local help_html = [=====[
+return [=====[
 <!DOCTYPE html>
 <html>
     <head>
@@ -231,7 +224,8 @@ local help_html = [=====[
                     </div>
                     <div class="wrap-header_content-right">
                         <button id="reloadBtn">模块重载</button>
-                        <button id="actBtn">接口管理</button>
+                        <button id="apiBtn">API接口声明</button>
+                        <button id="actBtn">ACT接口管理</button>
                         <button id="daoBtn">数据库管理</button>
                         <button id="detailBtn">数据库表结构</button>
                         <button id="initdaosBtn">升级表结构</button>
@@ -414,6 +408,7 @@ local help_html = [=====[
                 var $detailBtn  = document.getElementById('detailBtn');
                 var $reloadBtn  = document.getElementById('reloadBtn');
                 var $initdaosBtn= document.getElementById('initdaosBtn');
+                var $apiBtn     = document.getElementById('apiBtn');
 
                 var $table      = document.getElementById('table');
                     $table.style.right = (clientWidth-1200) / 2 + 'px';
@@ -516,25 +511,13 @@ local help_html = [=====[
                     window.open('initdaos', '_blank');
                 });
 
+                // API接口声明
+                $apiBtn.addEventListener('click', function(e) {
+                    window.open('api', '_blank');
+                });
+
             }
         </script>
     </body>
 </html>
 ]=====]
-
-local function show_help (app)
-
-    ngx.header["content-type"] = "text/html; charset=utf-8"
-
-    templ_render ( help_html, {
-        app_name  = app.name,
-        app_title = app.title,
-        app_ver   = app.ver,
-        help_html = app.help_html,
-        app_acts  = _load_acts(app.name),
-        app_daos  = _load_daos(app.name),
-    })
-
-end
-
-return show_help

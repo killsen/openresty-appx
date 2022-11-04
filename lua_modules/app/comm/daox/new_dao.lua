@@ -443,29 +443,23 @@ local function _loadsets(data)
 end
 
 -- 初始化列定义
-local init_fields = require "app.comm.init_fields"
+local init_fields = require "app.comm.daox.init_fields"
 
 -- 创建dao对象
-local function new_dao(app, dao)
+local function new_dao (dao, db_execute)
 
-    if not app or not dao then return end
-
-        local table_schema = dao.table_schema  -- 数据库
-        local table_name   = dao.table_name    -- 表名
-        local table_index  = dao.table_index   -- 索引
-        local table_desc   = dao.table_desc or ""
-        local field_list   = dao.field_list    -- 列头定义
-    --  local demo_data    = dao.demo_data     -- 演示数据
+    local table_schema = dao.table_schema  -- 数据库
+    local table_name   = dao.table_name    -- 表名
+    local table_index  = dao.table_index   -- 索引
+    local table_desc   = dao.table_desc or ""
+    local field_list   = dao.field_list    -- 列头定义
+--  local demo_data    = dao.demo_data     -- 演示数据
 
     if not table_name then return dao end
 
     if table_schema and table_schema~="" then
         table_name = table_schema .. "." .. table_name
     end
-
-    local  db = app.load("%db") -- 数据库访问组件
-    if not db then return end
-    local  db_execute = db.execute
 
     ---------------------------------------------------
 

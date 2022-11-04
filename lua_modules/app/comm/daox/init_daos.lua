@@ -1,15 +1,21 @@
 
 -- 初始化数据库 v20.08.19
 
-local file_list = require "app.utils".file_list  -- lua文件列表
+local file_list = require "app.comm.utils".file_list  -- lua文件列表
 local _quote    = ngx.quote_sql_str
 
+local function echo(...)
+    ngx.say(...)
+    ngx.flush()
+end
+
 -- 取得表结构
-local function _columns(app, dao)
+local function get_columns(app_name, dao_name)
 
-    local db = app.load "%db"
+    local app = require "app.comm.appx".new(app_name)
+    local dao = app:load("$" .. dao_name)
 
-    db.master = true -- 只使用主库 v20.08.09
+    app.db.master = true -- 只使用主库 v20.08.09
 
     local table_schema = dao.table_schema or app.db_config.database
     local table_name   = dao.table_name
@@ -27,7 +33,7 @@ order by ordinal_position
 ;
 ]]
 
-    local cols, err = db.execute(sql)
+    local cols, err = app.db.execute(sql)
     if not cols then return nil, err end
 
     for _, col in ipairs(cols) do
@@ -45,27 +51,28 @@ order by ordinal_position
 end
 
 -- 升级表结构
-local function _upgrade(app, dao, index, add_column, drop_column)
+local function upgrade_table(app_name, dao_name, index, add_column, drop_column)
 
-    local db = app.load "%db"
+    local app = require "app.comm.appx".new(app_name)
+    local dao = app:load("$" .. dao_name)
 
     local res, err = dao.create()
 
     if res then
-        ngx.say("-- ", index, ". ", dao.table_name, " ( ", dao.table_desc, " )", "\t[创建表成功]")
+        echo("-- ", index, ". ", dao.table_name, " ( ", dao.table_desc, " )", "\t[创建表成功]")
 
         local res, err = dao.create_index() -- 创建索引
         if not res then
-            ngx.say("-- 创建索引失败：", err)
-            ngx.say("")
+            echo("-- 创建索引失败：", err)
+            echo("")
         end
 
         return true
     end
 
-    local  cols, err = _columns(app, dao)
+    local  cols, err = get_columns(app_name, dao_name)
     if not cols or #cols == 0 then
-        ngx.say("-- 读取表结构失败：", err)
+        echo("-- 读取表结构失败：", err)
         return
     end
 
@@ -87,8 +94,8 @@ local function _upgrade(app, dao, index, add_column, drop_column)
     for i, f in ipairs(dao.field_list) do
         if not _exist[f.name] then
             if is_the_same then
-                ngx.say("")
-                ngx.say("-- ", index, ". ", dao.table_name, " ( ", dao.table_desc, " )")
+                echo("")
+                echo("-- ", index, ". ", dao.table_name, " ( ", dao.table_desc, " )")
             end
 
             is_the_same = false
@@ -112,18 +119,18 @@ local function _upgrade(app, dao, index, add_column, drop_column)
 
             if add_column then
 
-                local  res, err = db.execute(sql)
+                local  res, err = app.db.execute(sql)
                 if not res then
-                    ngx.say("-- 创建列失败：", f.name, "；错误：", err)
+                    echo("-- 创建列失败：", f.name, "；错误：", err)
                     return
                 else
-                    ngx.say("-- 创建列成功：", f.name)
+                    echo("-- 创建列成功：", f.name)
                 end
 
             else
-                ngx.say("")
-                ngx.say("-- 手工创建列：", f.name)
-                ngx.say(sql)
+                echo("")
+                echo("-- 手工创建列：", f.name)
+                echo(sql)
             end
 
         end
@@ -133,8 +140,8 @@ local function _upgrade(app, dao, index, add_column, drop_column)
     for _, c in ipairs(cols) do
         if not _exist[c.name] then
             if is_the_same then
-                ngx.say("")
-                ngx.say("-- ", index, ". ", dao.table_name, " ( ", dao.table_desc, " )")
+                echo("")
+                echo("-- ", index, ". ", dao.table_name, " ( ", dao.table_desc, " )")
             end
 
             is_the_same = false
@@ -144,35 +151,34 @@ local function _upgrade(app, dao, index, add_column, drop_column)
 
             if drop_column then
 
-                local  res, err = db.execute(sql)
+                local  res, err = app.db.execute(sql)
                 if not res then
-                    ngx.say("-- 删除列失败：", c.name, "；错误：", err)
+                    echo("-- 删除列失败：", c.name, "；错误：", err)
                     return
                 else
-                    ngx.say("-- 删除列成功：", c.name)
+                    echo("-- 删除列成功：", c.name)
                 end
 
             else
-                ngx.say("")
-                ngx.say("-- 手工删除列：", c.name)
-                ngx.say(sql)
+                echo("")
+                echo("-- 手工删除列：", c.name)
+                echo(sql)
             end
 
         end
     end
 
     if is_the_same then
-        ngx.say("-- ", index, ". ", dao.table_name, " ( ", dao.table_desc, " )", "\t[表结构一致]")
+        echo("-- ", index, ". ", dao.table_name, " ( ", dao.table_desc, " )", "\t[表结构一致]")
     else
-        ngx.say("")
+        echo("")
     end
 
     return true
 
 end
 
-
-return function(app)
+local function init_daos(app_name, add_column, drop_column)
 
     -- 只能本机执行
     if "127.0.0.1" ~= ngx.var.remote_addr then
@@ -181,41 +187,39 @@ return function(app)
     end
 
     local args = ngx.req.get_uri_args()
-    local add_column  = args.add_column     -- 是否要添加列
-    local drop_column = args.drop_column    -- 是否要删除列
+
+    app_name    = app_name    or ngx.ctx.app_name
+    add_column  = add_column  or args.add_column     -- 是否要添加列
+    drop_column = drop_column or args.drop_column    -- 是否要删除列
+
+    local app = require "app.comm.appx".new(app_name)
 
     ngx.header['content-type'] = "text/plain"
 
-    local url = "http://" .. ngx.var.http_host .. "/" .. app.name .. "/initdaos"
+    local url = "http://" .. ngx.var.http_host .. "/" .. app_name .. "/initdaos"
 
-    ngx.say ""
-    ngx.say("-- 只添加新增列: ", url, "?add_column")
-    ngx.say("-- 只删除多余列: ", url, "?drop_column")
-    ngx.say("-- 添加及删除列: ", url, "?add_column&drop_column")
-    ngx.say ""
+    echo ""
+    echo("-- 只添加新增列: ", url, "?add_column")
+    echo("-- 只删除多余列: ", url, "?drop_column")
+    echo("-- 添加及删除列: ", url, "?add_column&drop_column")
+    echo ""
 
     if not app or not app.db_config or not app.db_config.database then
-        ngx.say("-- 数据库未定义")
+        echo("-- 数据库未定义")
         return
     end
 
-    ngx.say("-- 数据库名称：", app.db_config.database)
+    echo("-- 数据库名称：", app.db_config.database)
 
-    local files = file_list("app/" .. app.name .. "/dao/") or {}
-    ngx.say("-- dao 文件数：", #files)
-    ngx.say("")
+    local files = file_list("app/" .. app_name .. "/dao/") or {}
+    echo("-- dao 文件数：", #files)
+    echo("")
 
-    for index, file in ipairs(files) do
-
-        local dao = app.load("$" .. file)
-
-        if type(dao) ~= "table" then
-            ngx.say("-- 加载 dao 失败：" .. file)
-            return
-        end
-
-        local res, err = _upgrade(app, dao, index, add_column, drop_column)
-        if not res then return end
+    for index, dao_name in ipairs(files) do
+        local ok = upgrade_table(app_name, dao_name, index, add_column, drop_column)
+        if not ok then return end
     end
 
 end
+
+return init_daos
