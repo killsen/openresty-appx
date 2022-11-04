@@ -1,4 +1,7 @@
 
+local ngx           = ngx
+local type          = type
+local pcall         = pcall
 local require       = require
 local daox          = require "app.comm.daox"
 local actx          = require "app.comm.actx"
@@ -45,7 +48,9 @@ rawset(_G, "_load", _load)
 function _M.new (app_name)  --@@
 
     app_name = app_name or ngx.ctx.app_name
-    if type(app_name) ~= "string" or app_name == "" then return end
+    if type(app_name) ~= "string" or app_name == "" then
+        return nil, "app not found"
+    end
 
     app_name = _lower(app_name)  -- 转小写
     ngx.ctx.app_name = app_name
@@ -54,8 +59,9 @@ function _M.new (app_name)  --@@
     if app then return app end
 
     -- local conf = require("app.demo")
-    local conf = require("app." .. app_name)
-    if type(conf) ~= "table" then return end
+    local pok, conf = pcall(require, "app." .. app_name)
+    if not pok then return nil, "app not found" end
+    if type(conf) ~= "table" then return nil, "app not found" end
 
     -- 加载 db 库
     package.loaded["app.lib.db"] = nil
