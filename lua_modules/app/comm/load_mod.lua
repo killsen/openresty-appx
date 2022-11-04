@@ -114,6 +114,9 @@ local function load_mod (app_name, mod_name, reload_mod)
         if is_api and not is_lazy then gen_valid_func(mod) end
         return mod, t
 
+    elseif t=="$" and n and #n>0 then
+        return { table_name=n }, t -- 返回空dao
+
     elseif t=="%" then
         -- 加载通用库: 不同app独立副本
         mod_name = "app.lib." .. n
@@ -121,9 +124,6 @@ local function load_mod (app_name, mod_name, reload_mod)
         ok, mod = pcall(require, mod_name)
         package.loaded[mod_name] = nil
         if ok then return mod, t end
-
-    elseif t=="$" and n and #n>0 then
-        return {table_name=n}, t -- 返回空dao
     end
 
 end

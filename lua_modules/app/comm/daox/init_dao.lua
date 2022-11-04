@@ -40,7 +40,7 @@ local function init_dao(app_name, dao_name, drop_nonce)
     end
 
     local db   = app.db
-    local dao  = app:load("$" .. dao_name)
+    local dao  = app:load_dao(dao_name)
 
     dao.demo_data = dao.demo_data or {}
 

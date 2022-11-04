@@ -13,7 +13,7 @@ end
 local function get_columns(app_name, dao_name)
 
     local app = require "app.comm.appx".new(app_name)
-    local dao = app:load("$" .. dao_name)
+    local dao = app:load_dao(dao_name)
 
     app.db.master = true -- 只使用主库 v20.08.09
 
@@ -54,7 +54,7 @@ end
 local function upgrade_table(app_name, dao_name, index, add_column, drop_column)
 
     local app = require "app.comm.appx".new(app_name)
-    local dao = app:load("$" .. dao_name)
+    local dao = app:load_dao(dao_name)
 
     local res, err = dao.create()
 

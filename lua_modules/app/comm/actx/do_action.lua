@@ -145,10 +145,10 @@ local function do_action (app_name, uri)
     local mod
 
     if is_debug then
-        mod = app:load("act." .. action_name, true)
+        mod = app:load_act(action_name, true)
         mod = get_debug_mod(mod) -- 通过调试代码创建模块
     else
-        mod = app:load("act." .. action_name)
+        mod = app:load_act(action_name)
     end
 
     local actx

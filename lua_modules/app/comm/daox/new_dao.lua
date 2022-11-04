@@ -446,18 +446,28 @@ end
 local init_fields = require "app.comm.daox.init_fields"
 
 -- 创建dao对象
-local function new_dao (dao, db_execute)
+local function new_dao (mod, db_execute)
 
-    local table_schema = dao.table_schema  -- 数据库
-    local table_name   = dao.table_name    -- 表名
-    local table_index  = dao.table_index   -- 索引
+    if type(mod) ~= "table" then return end
+
+    local dao = {
+        table_schema = mod.table_schema ,  -- 数据库
+        table_name   = mod.table_name   ,  -- 表名
+        table_desc   = mod.table_desc   ,  -- 描述
+        field_list   = mod.field_list   ,  -- 列头定义
+        table_index  = mod.table_index  ,  -- 索引
+        demo_data    = mod.demo_data    ,  -- 演示数据
+    }
+
+    local table_schema = dao.table_schema
+    local table_name   = dao.table_name
     local table_desc   = dao.table_desc or ""
-    local field_list   = dao.field_list    -- 列头定义
---  local demo_data    = dao.demo_data     -- 演示数据
+    local field_list   = dao.field_list
+    local table_index  = dao.table_index
 
-    if not table_name then return dao end
+    if type(table_name) ~= "string" or table_name == "" then return dao end
 
-    if table_schema and table_schema~="" then
+    if type(table_schema) == "string" and table_schema ~= "" then
         table_name = table_schema .. "." .. table_name
     end
 

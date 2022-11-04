@@ -9,6 +9,7 @@ local apix          = require "app.comm.apix"
 local load_mod      = require "app.comm.load_mod"
 local _cleart       = require "table.clear"
 local _lower        = string.lower
+local _sub          = string.sub
 
 local _M = {}
 local mt = { __index = _M }
@@ -40,9 +41,16 @@ local APPS = {}
 local function _load(mod_name)
     local app = _M.new(ngx.ctx.app_name)
     if not app then return end
-    return app:load(mod_name)
+    return app:load_mod(mod_name)
 end
 rawset(_G, "_load", _load)
+
+local function _unload()
+    local app = _M.new(ngx.ctx.app_name)
+    if not app then return end
+    return app:unload()
+end
+rawset(_G, "_unload", _unload)
 
 -- 创建应用
 function _M.new (app_name)  --@@
@@ -136,41 +144,60 @@ function _M:gen_api_js ()
     apix.gen_api_js(self.name)
 end
 
+-- 加载 dao 模块
+function _M:load_dao(mod_name, reload_mod)
+
+    local mod
+
+    if not reload_mod then
+        mod = self.mod_loaded[mod_name]
+        if mod ~= nil then return mod end
+    end
+
+    if type(mod_name) ~= "string" or mod_name == "" then return end
+    if _sub(mod_name, 1, 1) ~= "$" then mod_name = "$" .. mod_name end
+
+    mod = load_mod (self.name, mod_name, reload_mod)
+    if type(mod) ~= "table" then return end
+
+    mod = daox.new_dao (mod, self.db_execute)
+    self.mod_loaded[mod_name] = mod
+
+    return mod
+
+end
+
+-- 加载 act 模块
+function _M:load_act(mod_name, reload_mod)
+
+    if type(mod_name) ~= "string" or mod_name == "" then return end
+    if _sub(mod_name, 1, 4) ~= "act." then mod_name = "act." .. mod_name end
+
+    return self:load_mod(mod_name, reload_mod)
+
+end
+
 -- 加载模块
-function _M:load(mod_name, reload_mod)
+function _M:load_mod(mod_name, reload_mod)
+
+    local mod
+
+    if not reload_mod then
+        mod = self.mod_loaded[mod_name]
+        if mod ~= nil then return mod end
+    end
+
+    if type(mod_name) ~= "string" or mod_name == "" then return end
 
     if (mod_name == "%db") then
         return self.db
+    elseif _sub(mod_name, 1, 1) == "$" then
+        return self:load_dao(mod_name, reload_mod)
     end
 
-    -- 未指定参数：则卸载
-    if type(mod_name)~="string" or mod_name=="" then
-        self.unload()
-        return
-    end
+    mod = load_mod (self.name, mod_name, reload_mod)
+    self.mod_loaded[mod_name] = mod
 
-    local app_name   = self.name
-    local mod_loaded = self.mod_loaded
-
-    -- 卸载模块
-    if reload_mod then
-        self.mod_loaded[mod_name] = nil
-    end
-
-    local mod, t
-
-    mod = self.mod_loaded[mod_name]
-    if mod then return mod end
-
-    mod, t = load_mod (app_name, mod_name, reload_mod)
-    if not mod then return end
-
-    if t=="$" then -- dao
-        mod = daox.new_dao (mod, self.db_execute)
-        if not mod then return end
-    end
-
-    mod_loaded[mod_name] = mod
     return mod
 
 end
