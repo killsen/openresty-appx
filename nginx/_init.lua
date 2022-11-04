@@ -1,47 +1,67 @@
 
+local gsub, sub = string.gsub, string.sub
+
 local prefix = ngx.config.prefix()
+
+prefix = gsub(prefix, "\\", "/")
+if "/" ~= sub(prefix, -1) then
+    prefix = prefix .. "/"
+end
+
+local lua_modules = prefix .. "../lua_modules/"
+
+for i = #prefix - 1, 2, -1 do
+    if "/" == sub(prefix, i, i) then
+        lua_modules = sub(prefix, 1, i) .. "lua_modules/"
+        break
+    end
+end
 
 -- lua 模块检索路径
 local path = {
-    prefix .. "/?.lua",
-    prefix .. "/?/init.lua",
-    prefix .. "/lua/?.lua",
-    prefix .. "/lua/?/init.lua",
-    prefix .. "/lualib/?.lua",
-    prefix .. "/lualib/?/init.lua",
-    --------------------------------
-    prefix .. "/../lua_modules/?.lua",
-    prefix .. "/../lua_modules/?/init.lua",
-    prefix .. "/../lua_modules/lua/?.lua",
-    prefix .. "/../lua_modules/lua/?/init.lua",
-    prefix .. "/../lua_modules/lualib/?.lua",
-    prefix .. "/../lua_modules/lualib/?/init.lua",
-    -----------------------------------------------
+    prefix      .. "?.lua",
+    prefix      .. "?/init.lua",
+    prefix      .. "lua/?.lua",
+    prefix      .. "lua/?/init.lua",
+    prefix      .. "lualib/?.lua",
+    prefix      .. "lualib/?/init.lua",
+    ------------------------------------
+    lua_modules .. "?.lua",
+    lua_modules .. "?/init.lua",
+    lua_modules .. "lua/?.lua",
+    lua_modules .. "lua/?/init.lua",
+    lua_modules .. "lualib/?.lua",
+    lua_modules .. "lualib/?/init.lua",
+    ------------------------------------
     ";"
 }
 
 -- clib 模块检索路径
 local cpath = {
-    prefix .. "/?.dll",
-    prefix .. "/clib/?.dll",
-    prefix .. "/clib/?/?.dll",
-    prefix .. "/lualib/?.dll",
-    prefix .. "/lualib/?/?.dll",
-    prefix .. "/../lua_modules/clib/?.dll",
-    prefix .. "/../lua_modules/clib/?/?.dll",
-    prefix .. "/../lua_modules/lualib/?.dll",
-    prefix .. "/../lua_modules/lualib/?/?.dll",
-    -------------------------------------------
-    prefix .. "/?.so",
-    prefix .. "/clib/?.so",
-    prefix .. "/clib/?/?.so",
-    prefix .. "/lualib/?.so",
-    prefix .. "/lualib/?/?.so",
-    prefix .. "/../lua_modules/clib/?.so",
-    prefix .. "/../lua_modules/clib/?/?.so",
-    prefix .. "/../lua_modules/lualib/?.so",
-    prefix .. "/../lua_modules/lualib/?/?.so",
-    -------------------------------------------
+    prefix      .. "?.dll",
+    prefix      .. "clib/?.dll",
+    prefix      .. "clib/?/?.dll",
+    prefix      .. "lualib/?.dll",
+    prefix      .. "lualib/?/?.dll",
+    ------------------------------------
+    lua_modules .. "?.dll",
+    lua_modules .. "clib/?.dll",
+    lua_modules .. "clib/?/?.dll",
+    lua_modules .. "lualib/?.dll",
+    lua_modules .. "lualib/?/?.dll",
+    ------------------------------------
+    prefix      .. "?.so",
+    prefix      .. "clib/?.so",
+    prefix      .. "clib/?/?.so",
+    prefix      .. "lualib/?.so",
+    prefix      .. "lualib/?/?.so",
+    ------------------------------------
+    lua_modules .. "?.so",
+    lua_modules .. "clib/?.so",
+    lua_modules .. "clib/?/?.so",
+    lua_modules .. "lualib/?.so",
+    lua_modules .. "lualib/?/?.so",
+    ------------------------------------
     ";"
 }
 
