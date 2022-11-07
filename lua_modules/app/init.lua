@@ -71,6 +71,7 @@ __.main = function()
     if not app_name then return ngx.exit(404) end
 
     ngx.ctx.app_name = app_name
+    ngx.ctx.file_name = ngx.var.file_name
 
     local app  = appx.new(app_name)
     if not app then return ngx.exit(404) end
@@ -90,6 +91,7 @@ __.debug = function()
 
     -- 运行的lua文件
     local file_name = ngx.var.http_file_name
+    ngx.ctx.file_name = file_name
     if not file_name or file_name == "" then
         return ngx.exit(403)
     end
