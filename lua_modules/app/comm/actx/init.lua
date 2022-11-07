@@ -1,9 +1,8 @@
+-- @@api : openresty-vsce
 
-local __ = {}
+local __ = { __VERSION = "v1.0.0" }
 
-__.do_action    = require "app.comm.actx.do_action"
-__.load_acts    = require "app.comm.actx.load_acts"
-__.reload_app   = require "app.comm.actx.reload_app"
-__.show_help    = require "app.comm.actx.show_help"
+-- 生成API模块
+require "app.comm.apix".new(__)
 
 return __

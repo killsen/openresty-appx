@@ -1,4 +1,4 @@
--- @@api
+-- @@api : openresty-vsce
 
 local apix = require "app.comm.apix"
 

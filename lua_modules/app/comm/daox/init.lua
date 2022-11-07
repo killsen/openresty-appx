@@ -1,9 +1,6 @@
+-- @@api : openresty-vsce
 
-local __ = {}
-
-__.init_fields  = require "app.comm.daox.init_fields"
-__.load_daos    = require "app.comm.daox.load_daos"
-__.new_dao      = require "app.comm.daox.new_dao"
+local __ = { __VERSION = "v1.0.0" }
 
 __.init_dao__ = {
     "重新建表",
@@ -33,7 +30,7 @@ __.init_daos = function(t)
     return init_daos(t.app_name, t.add_column, t.drop_column)
 end
 
--- 生成参数校验函数接口
-require "app.comm.apix.gen_valid_func"(__)
+-- 生成API模块
+require "app.comm.apix".new(__)
 
 return __

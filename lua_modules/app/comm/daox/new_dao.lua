@@ -443,10 +443,14 @@ local function _loadsets(data)
 end
 
 -- 初始化列定义
-local init_fields = require "app.comm.daox.init_fields"
+local init_fields
 
 -- 创建dao对象
 local function new_dao (mod, db_execute)
+
+    if init_fields == nil then
+        init_fields = require "app.comm.daox".init_fields
+    end
 
     if type(mod) ~= "table" then return end
 

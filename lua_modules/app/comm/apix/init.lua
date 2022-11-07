@@ -1,3 +1,4 @@
+-- @@api : openresty-vsce
 
 local pcall         = pcall
 local dofile        = dofile
@@ -9,7 +10,7 @@ local gsub          = string.gsub
 local sub           = string.sub
 local lower         = string.lower
 
-local __ = {}
+local __ = { __VERSION = "v1.0.0" }
 
 -- API模块构造器
 __.new = function(t, path)
@@ -67,10 +68,7 @@ __.new = function(t, path)
 
 end
 
-__.gen_valid_func = require "app.comm.apix.gen_valid_func"
-__.gen_valid_code = require "app.comm.apix.gen_valid_code"
-__.gen_api_code   = require "app.comm.apix.gen_api_code"
-__.gen_api_ts     = require "app.comm.apix.gen_api_ts"
-__.gen_api_js     = require "app.comm.apix.gen_api_js"
+-- 生成API模块
+__.new(__)
 
 return __
