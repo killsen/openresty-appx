@@ -209,11 +209,11 @@ function install_luarocks () {
     echo "-----------------------------------------"
     echo ""
 
-    luarocks_clib_path="~/luarocks-$luarocks_ver/lua_modules/lib/lua/5.1/"
-    luarocks_share_path="~/luarocks-$luarocks_ver/lua_modules/share/lua/5.1/"
+    luarocks_clib_path="luarocks-$luarocks_ver/lua_modules/lib/lua/5.1"
+    luarocks_share_path="luarocks-$luarocks_ver/lua_modules/share/lua/5.1"
 
-    \cp -fr $luarocks_clib_path/*    ~/lua_modules/clib/
-    \cp -fr $luarocks_share_path/*   ~/lua_modules/lua/
+    \cp -fr ~/$luarocks_clib_path/*    ~/lua_modules/clib/
+    \cp -fr ~/$luarocks_share_path/*   ~/lua_modules/lua/
 
 }
 
