@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # 第一次运行请先授权
-# chmod +x ~/site.sh
+# chmod u+x ~/site.sh
 
 app_name="demo"
 
