@@ -18,24 +18,6 @@ local mt = { __index = _M }
 -- 不同请求、timer：共用 _G 和 gm
 -- 不同请求、timer：ngx.ctx 隔离
 
-local gm = getmetatable(_G)
-
--- 严格模式（不允许创建全局变量）
-gm.__newindex = function(_, k, v)
-
-    -- if GLOBAL[k] then return end
-
-        ngx.status = 500
-        ngx.header["content-type"] = "text/plain"
-
-        ngx.say ( "------ 出 错 啦 ------" )
-        ngx.say ( "不允许创建全局变量：", tostring(k), " = ", tostring(v) )
-        ngx.say ( "\n", debug.traceback() )
-
-    return ngx.exit(500) -- ngx.HTTP_INTERNAL_SERVER_ERROR
-
-end
-
 local APPS = {}
 
 local function _load(mod_name)
