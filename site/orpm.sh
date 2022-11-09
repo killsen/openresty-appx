@@ -1,7 +1,8 @@
 #!/bin/sh
 
-# 第一次运行请先授权
-# chmod u+x ~/site.sh
+# 第一次运行请先创建命令并授权
+# echo "sh ~/orpm.sh" > /usr/bin/orpm
+# chmod u+x /usr/bin/orpm
 
 app_name="demo"
 
@@ -9,7 +10,7 @@ mysql_host="127.0.0.1"
 mysql_port="3306"
 mysql_uid="root"
 mysql_psw="12345678"
-zip_file="site.zip"
+nginx_zip="nginx.zip"
 luarocks_ver="3.9.1"
 
 function show_menu () {
@@ -254,7 +255,7 @@ function install_nginx_app () {
     # rm -rf ~/nginx/       # 删除目录
 
     # 解压文件：指定字符集，解决中文文件名乱码问题
-    unzip -O CP936 -o ~/$zip_file -d ~/
+    unzip -O CP936 -o ~/$nginx_zip -d ~/
 
     # 设置upload目录权限：读r=4, 写w=2, 运行x=1
     # chmod 777 ~/nginx/upload

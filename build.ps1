@@ -1,6 +1,7 @@
 
 $temp  = "./site/temp"
 $nginx = "./site/nginx"
+$zip   = "./site/nginx.zip"
 
 if (Test-Path $temp) {
     Remove-Item -Path $temp -Recurse -Force -ErrorAction Stop
@@ -30,6 +31,6 @@ Copy-Item -Path ./nginx/*.lua           -Destination $temp/nginx/      -Force
 
 Copy-Item -Path $nginx/*                -Destination $temp/nginx/       -Force -Recurse
 
-Compress-Archive -Path $temp/* -DestinationPath ./site/site.zip  -Force
+Compress-Archive -Path $temp/* -DestinationPath $zip  -Force
 
 Start-Process "site"
