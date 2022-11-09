@@ -2,12 +2,13 @@
 local api = _load "api"
 
 local __ = {}
-__.ver   = "21.08.30"
-__.name  = "类别测试"
-__.host  = "127.0.0.1"
+__.ver   = "22.11.10"
+__.name  = "api测试"
 ------------------------------------------------------
 
 __.actx = function()
+
+    ngx.header["content-type"] = "text/plain"
 
     api.dd.cate.add { cate_id = "1101", cate_name = "热菜" }
     api.dd.cate.add { cate_id = "1102", cate_name = "凉菜" }

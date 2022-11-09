@@ -30,7 +30,7 @@ function show_menu () {
     21) 访问首页        22) 压力测试
 
     #### 数据库 ####    30) 数据库连接
-    31) 检查表结构      32) 升级表结构      33) 导入数据
+    31) 检查表结构      32) 升级表结构
 
 EOF
 
@@ -55,7 +55,6 @@ EOF
 
         31) curl "http://127.0.0.1/$app_name/initdaos"                        ;;
         32) curl "http://127.0.0.1/$app_name/initdaos?add_column&drop_column" ;;
-        33) curl "http://127.0.0.1/$app_name/_.data_import.lpage" ;;
 
         s)
             sudo pkill openresty
@@ -161,7 +160,7 @@ function install_luarocks () {
 
     echo "下载并安装 luarocks"
     echo "-----------------------------------------"
-    wget http://luarocks.github.io/luarocks/releases/luarocks-$luarocks_ver.tar.gz -O luarocks-$luarocks_ver.tar.gz
+    wget https://luarocks.github.io/luarocks/releases/luarocks-$luarocks_ver.tar.gz -O luarocks-$luarocks_ver.tar.gz
     tar -zxvf luarocks-$luarocks_ver.tar.gz
     cd luarocks-$luarocks_ver
 
