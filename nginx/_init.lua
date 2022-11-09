@@ -17,6 +17,20 @@ for i = #prefix - 1, 2, -1 do
     end
 end
 
+-- 保留原有的 package.path
+local package_path = rawget(_G, "package_path")
+if not package_path then
+    package_path = package.path
+    rawset(_G, "package_path", package_path)
+end
+
+-- 保留原有的 package.cpath
+local package_cpath = rawget(_G, "package_cpath")
+if not package_cpath then
+    package_cpath = package.cpath
+    rawset(_G, "package_cpath", package_cpath)
+end
+
 -- lua 模块检索路径
 local path = {
     prefix      .. "?.lua",
@@ -33,23 +47,11 @@ local path = {
     lua_modules .. "lualib/?.lua",
     lua_modules .. "lualib/?/init.lua",
     ------------------------------------
-    ";"
+    package_path, ";"  -- 原有的 package.path
 }
 
 -- clib 模块检索路径
 local cpath = {
-    prefix      .. "?.dll",
-    prefix      .. "clib/?.dll",
-    prefix      .. "clib/?/?.dll",
-    prefix      .. "lualib/?.dll",
-    prefix      .. "lualib/?/?.dll",
-    ------------------------------------
-    lua_modules .. "?.dll",
-    lua_modules .. "clib/?.dll",
-    lua_modules .. "clib/?/?.dll",
-    lua_modules .. "lualib/?.dll",
-    lua_modules .. "lualib/?/?.dll",
-    ------------------------------------
     prefix      .. "?.so",
     prefix      .. "clib/?.so",
     prefix      .. "clib/?/?.so",
@@ -62,7 +64,19 @@ local cpath = {
     lua_modules .. "lualib/?.so",
     lua_modules .. "lualib/?/?.so",
     ------------------------------------
-    ";"
+    prefix      .. "?.dll",
+    prefix      .. "clib/?.dll",
+    prefix      .. "clib/?/?.dll",
+    prefix      .. "lualib/?.dll",
+    prefix      .. "lualib/?/?.dll",
+    ------------------------------------
+    lua_modules .. "?.dll",
+    lua_modules .. "clib/?.dll",
+    lua_modules .. "clib/?/?.dll",
+    lua_modules .. "lualib/?.dll",
+    lua_modules .. "lualib/?/?.dll",
+    ------------------------------------
+    package_cpath, ";"  -- 原有的 package.cpath
 }
 
 package.path = table.concat(path, ";")
