@@ -9,7 +9,8 @@ local function show_help(app_name)
     if not help_html then
         local info = debug.getinfo(1, "S")
         local path = string.sub(info.source, 2)  -- 去掉开头的@符号
-        local file = io.open(path .. "/../help.html", "rb")
+        path = string.gsub(path, "show_help.lua", "help.html")
+        local file = io.open(path, "rb")
         if not file then return ngx.exit(404) end
         help_html = file:read("a")
         file:close()
