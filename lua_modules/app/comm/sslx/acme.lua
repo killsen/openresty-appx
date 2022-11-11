@@ -11,7 +11,7 @@
 
 local util              = require "resty.acme.util"
 local openssl           = require "resty.acme.openssl"
-local dnsapi            = require "app.utils.acme.dnsapi"
+local dnsapi            = require "app.comm.sslx.dnsapi"
 local request           = require "app.utils.request"
 local cjson             = require "cjson.safe"
 

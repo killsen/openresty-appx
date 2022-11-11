@@ -2,7 +2,7 @@
 -- 详解 ACME V2 (RFC 8555) 协议，你是如何从Let's Encrypt 申请到证书的
 -- https://zhuanlan.zhihu.com/p/75032510
 
-local ACME              = require "app.utils.acme.client"
+local ACME              = require "app.comm.sslx.acme"
 local cjson             = require "cjson.safe"
 
 local cert_path = ngx.config.prefix() .. "/conf/cert/"

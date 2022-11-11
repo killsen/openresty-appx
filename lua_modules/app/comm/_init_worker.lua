@@ -34,3 +34,6 @@ ngx.log(ngx.ERR ,   ", index="  , index
 
 -- 启动后台任务
 pcall(require, "app.comm.run_tasks")
+
+-- 动态加载证书
+pcall(require, "app.comm.sslx")
