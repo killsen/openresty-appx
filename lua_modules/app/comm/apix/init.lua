@@ -12,6 +12,16 @@ local lower         = string.lower
 
 local __ = { __VERSION = "v1.0.0" }
 
+-- 检查目录是否存在
+local function path_exists(path)
+    local file, err = io.open(path)
+    if file then file:close() end
+    if err and sub(err, -6) == "denied" then
+        -- 如果目录存在错误信息以 Permission denied 结尾
+        return true
+    end
+end
+
 -- API模块构造器
 __.new = function(t, path)
 
@@ -42,18 +52,23 @@ __.new = function(t, path)
         __index = function(self, key)
             local apipath  = path .. "/" .. key
             local filename = apipath .. ".lua"
+            local exists   = path_exists(apipath)
 
             local pok, mod = pcall(dofile, filename)
             if not pok then
                 filename = apipath .. "/init.lua"
                 pok, mod = pcall(dofile, filename)
-                if not pok then mod = {} end
+                if not pok and exists then
+                    mod = {}  -- 目录存在: 创建空表
+                end
             end
 
             if type(mod) == "table" then
                 __.gen_valid_func(mod)
                 rawset(mod, "__filename", filename)
-                mod = __.new(mod, apipath)
+                if exists then -- 目录存在: 创建API模块
+                    mod = __.new(mod, apipath)
+                end
             end
 
             rawset(self, key, mod)
