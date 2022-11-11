@@ -10,6 +10,8 @@ local get_request   = require "resty.core.base".get_request
 
 local _request      = require "app.utils.request"
 local _open         = io.open
+local _insert       = table.insert
+local _sub          = string.sub
 local _timer_at     = ngx.timer.at
 local _timer_every  = ngx.timer.every
 local prefix        = ngx.config.prefix()
@@ -18,7 +20,7 @@ local __ = { _VERSION = "v20.08.24" }
 
 --------------------------------------------------------------------------------
 
-local cache = mlcache.new("my_cache", "my_cache", {
+local cache = mlcache.new("sslx", "my_cache", {
         lru_size    = 100   -- 本地缓存数量: 100条
     ,   ttl         = 3600  -- 数据缓存时间: 60分钟
     ,   neg_ttl     = 10    -- 空值缓存时间: 10秒钟
@@ -44,39 +46,12 @@ local function read_file(file_name)
 
 end
 
--- 加载服务器（域名）
-local SERVER_LIST
-local function load_servers()
-
-    if SERVER_LIST then return SERVER_LIST end
-
-    local servers = {}
-
-    local text = read_file("domain.json")
-    if not text then return servers end
-
-    local domains = cjson.decode(text)
-    if type(domains) ~= "table" then return servers end
-
-    for _, d in ipairs(domains) do
-        if type(d) == "table" and type(d.domain_name) == "string" and d.domain_name ~= "" then
-            table.insert(servers, d.domain_name)
-            servers[d.domain_name] = d.domain_name
-        end
-    end
-
-    SERVER_LIST = servers
-
-    return servers
-
-end
-
 -- 取得证书
-local function get_cert_der(server_name)
+local function get_cert_der(domain_name)
 
-    if not server_name then return end
+    if not domain_name then return end
 
-    local file_crt = server_name .. "-crt.pem"
+    local file_crt = domain_name .. "-crt.pem"
     local cert_pem = read_file(file_crt)
     if not cert_pem then
         ngx.log(ngx.ERR, "failed to get PEM cert: ", file_crt)
@@ -94,11 +69,11 @@ local function get_cert_der(server_name)
 end
 
 -- 取得秘钥
-local function get_pkey_der(server_name)
+local function get_pkey_der(domain_name)
 
-    if not server_name then return end
+    if not domain_name then return end
 
-    local file_key = server_name .. "-key.pem"
+    local file_key = domain_name .. "-key.pem"
     local pkey_pem = read_file(file_key)
     if not pkey_pem then
         ngx.log(ngx.ERR, "failed to get PEM cert: ", file_key)
@@ -116,9 +91,9 @@ local function get_pkey_der(server_name)
 end
 
 -- 下载OCSP
-local function get_ocsp_resp(server_name, cert_der)
+local function get_ocsp_resp(domain_name, cert_der)
 
-    if not server_name or not cert_der then return end
+    if not domain_name or not cert_der then return end
 
     local ocsp_url, err = ocsp.get_ocsp_responder_from_der_chain(cert_der)
     if not ocsp_url then
@@ -165,7 +140,7 @@ local function get_ocsp_resp(server_name, cert_der)
     ngx.log(ngx.ERR, "\n"
                    , "\n", " get ocsp response success: "
                    , "\n", " ------------------------------------------------- "
-                   , "\n", " server  name  :  ", server_name
+                   , "\n", " domain  name  :  ", domain_name
                    , "\n", " request url   :  ", ocsp_url
                    , "\n", " request time  :  ", t2 - t1
                    , "\n", " ------------------------------------------------- "
@@ -177,11 +152,11 @@ local function get_ocsp_resp(server_name, cert_der)
 end
 
 -- 设置OCSP
-local function set_ocsp_resp(server_name, cert_der)
+local function set_ocsp_resp(domain_name, cert_der)
 
-    if not server_name or not cert_der then return end
+    if not domain_name or not cert_der then return end
 
-    local key = "ocsp/" .. server_name
+    local key = "ocsp/" .. domain_name
     local _, _, ocsp_resp = cache:peek(key)
 
     if not ocsp_resp then return end
@@ -205,21 +180,21 @@ local function set_ocsp_resp(server_name, cert_der)
 end
 
 -- 加载OCSP
-__.load_ocsp = function (server_name, reload)
+__.load_ocsp = function (domain_name, reload)
 
-    if not server_name then return end
+    if not domain_name then return end
 
-    local cert = __.load_cert(server_name)
+    local cert = __.load_cert(domain_name)
     if not cert then return end
 
     local cert_der = cert.cert_der
 
-    local key = "ocsp/" .. server_name
+    local key = "ocsp/" .. domain_name
     if reload then cache:delete(key) end
 
     local ocsp_resp = cache:get(key, nil, function()
 
-        local ocsp_resp = get_ocsp_resp(server_name, cert_der)
+        local ocsp_resp = get_ocsp_resp(domain_name, cert_der)
 
         if not ocsp_resp then
             return nil, nil, 10  -- 缓存 10 秒
@@ -244,19 +219,19 @@ __.load_ocsp = function (server_name, reload)
 end
 
 -- 加载证书及秘钥
-__.load_cert = function (server_name, reload)
+__.load_cert = function (domain_name, reload)
 
-    if not server_name then return end
+    if not domain_name then return end
 
-    local key = "cert/" .. server_name
+    local key = "cert/" .. domain_name
     if reload then cache:delete(key) end
 
     return cache:get(key, nil, function()
 
-        local cert_der = get_cert_der(server_name)
+        local cert_der = get_cert_der(domain_name)
         if not cert_der then return nil, nil, 10 end  -- 缓存 10 秒
 
-        local pkey_der = get_pkey_der(server_name)
+        local pkey_der = get_pkey_der(domain_name)
         if not pkey_der then return nil, nil, 10 end  -- 缓存 10 秒
 
         return {
@@ -268,13 +243,57 @@ __.load_cert = function (server_name, reload)
 
 end
 
--- 获取域名
-local function get_server_name()
+--------------------------------------------------------------------------------
 
-    local server_name = ssl.server_name()
-    if not server_name then return end
+local DOMAINS
+-- 加载域名列表
+__.load_domains = function ()
 
-    local servers = load_servers()
+    if DOMAINS then return DOMAINS end
+       DOMAINS = {}
+
+    local text = read_file("domains.json")
+    if not text then return DOMAINS end
+
+    local list = cjson.decode(text)
+    if type(list) ~= "table" then return DOMAINS end
+
+    for _, d in ipairs(list) do
+        if type(d) == "table" and type(d.domain_name) == "string" and d.domain_name ~= "" then
+            _insert(DOMAINS, {
+                domain_name  = d.domain_name,   -- 主域名: 如 baidu.com, qq.com 等
+                dnspod_token = d.dnspod_token,  -- 域名服务器登录凭证: 目前只支持 dnspod
+                expires_time = nil
+            })
+        end
+    end
+
+    return DOMAINS
+
+end
+
+local SERVERS
+-- 加载服务器名称列表
+__.load_servers = function ()
+
+    if SERVERS then return SERVERS end
+       SERVERS = {}
+
+    local domains = __.load_domains()
+
+    for _, d in ipairs(domains) do
+        _insert(SERVERS, d.domain_name)
+        SERVERS[d.domain_name] = d.domain_name
+    end
+
+    return SERVERS
+
+end
+
+-- 获取子域名对应的主域名: 如 www.baidu.com -> baidu.com
+__.get_domain_name = function(server_name)
+
+    local servers = __.load_servers()
     if #servers == 0 then return end
 
     local domain_name = servers[server_name]
@@ -283,14 +302,16 @@ local function get_server_name()
 
     servers[server_name] = false
 
-    for _, name in ipairs(servers) do
-        if string.sub(server_name, 0-#name) == name then
-            servers[server_name] = name
-            return name
+    for _, s in ipairs(servers) do
+        if _sub(server_name, 0-#s) == s then
+            servers[server_name] = s
+            return s
         end
     end
 
 end
+
+--------------------------------------------------------------------------------
 
 -- 动态加载证书和秘钥以及OCSP
 __.set_cert = function ()
@@ -299,11 +320,16 @@ __.set_cert = function ()
     local req = get_request()
     if not req then return end
 
-    local server_name = get_server_name()
+    -- 请求的域名(可能是主域名、子域名、n级域名)
+    local server_name = ssl.server_name()
     if not server_name then return end
 
+    -- 获取子域名对应的主域名
+    local domain_name = __.get_domain_name(server_name)
+    if not domain_name then return end
+
     -- 取得证书及秘钥
-    local cert = __.load_cert(server_name)
+    local cert = __.load_cert(domain_name)
     if not cert then return end
 
     local cert_der = cert.cert_der  -- 证书
@@ -331,7 +357,7 @@ __.set_cert = function ()
     end
 
     -- 设置OCSP
-    set_ocsp_resp(server_name, cert_der)
+    set_ocsp_resp(domain_name, cert_der)
 
 end
 
@@ -354,22 +380,22 @@ local function update_ocsp(premature, servers)
     -- 定时器已过期
     if premature then return end
 
-    for _, server_name in ipairs(servers) do
-        local ocsp_resp = __.load_ocsp(server_name)
+    for _, domain_name in ipairs(servers) do
+        local ocsp_resp = __.load_ocsp(domain_name)
         if not ocsp_resp then
-            __.load_ocsp(server_name, true)
+            __.load_ocsp(domain_name, true)
         end
     end
 
 end
 
--- 每5秒更新一次缓存
-_timer_every(5, update_cache)
+local servers = __.load_servers()
+if #servers > 0 then
+    -- 每5秒更新一次缓存
+    _timer_every(5, update_cache)
 
--- 只需第一个 worker 负责
-if ngx.worker.id() == 0 then
-    local servers = load_servers()
-    if #servers > 0 then
+    -- 只需第一个 worker 负责
+    if ngx.worker.id() == 0 then
         _timer_at   ( 0, update_ocsp, servers)  -- 初次加载
         _timer_every(60, update_ocsp, servers)  -- 每1分钟检查一次
     end

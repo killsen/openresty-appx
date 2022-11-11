@@ -12,7 +12,7 @@ site/temp
 site/orpm.sh
 *.zip
 
-**/conf/cert/domain.json
+**/conf/cert/domains.json
 **/conf/cert/*-acc.pem
 **/conf/cert/*-crt.pem
 **/conf/cert/*-key.pem
