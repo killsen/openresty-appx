@@ -10,6 +10,10 @@ local _open         = io.open
 local _insert       = table.insert
 local _sub          = string.sub
 
+local cert_path     = prefix .. "/conf/cert/"
+local cert_log      = prefix .. "/logs/cert.log"
+local sslx          = require "app.comm.sslx"
+
 local __ = { }
 
 local DOMAINS, SERVERS
@@ -19,7 +23,7 @@ local function read_file(file_name)
 
     if not file_name then return end
 
-    local  file = _open(prefix .. "/conf/cert/" .. file_name, "rb")
+    local  file = _open(cert_path .. file_name, "rb")
     if not file then return end
 
     local  data = file:read("*a")
@@ -90,6 +94,33 @@ __.get_domain_name = function(server_name)
             servers[server_name] = s
             return s
         end
+    end
+
+end
+
+
+local function echo(...)
+    local file = io.open(cert_log, "ab+")
+    if not file then return end
+    file:write(ngx.localtime(), "  ", ...)
+    file:write("\n")
+    file:close()
+end
+
+local function wait(msg, seconds)
+    echo(msg)
+    ngx.sleep(seconds)
+end
+
+-- 申请证书
+__.order_certs = function()
+
+    local domains = __.load_domains()
+
+    for _, d in ipairs(domains) do
+        local domain_name  = d.domain_name
+        local dnspod_token = d.dnspod_token
+        sslx.order.order_cert (domain_name, dnspod_token, echo, wait)
     end
 
 end
