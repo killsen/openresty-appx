@@ -17,6 +17,8 @@
                  "ledgetech/lua-resty-http":  "v0.16.1",
                  "agentzh/lua-resty-multipart-parser":  "master",
                  "golgote/lua-resty-info":  "master",
-                 "bungle/lua-resty-random":  "master"
+                 "bungle/lua-resty-random":  "master",
+                 "fffonion/lua-resty-acme":  "0.9.0",
+                 "fffonion/lua-resty-openssl":  "0.8.15"
              }
 }
