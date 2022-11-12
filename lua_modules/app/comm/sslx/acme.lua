@@ -11,7 +11,7 @@
 
 local util              = require "resty.acme.util"
 local openssl           = require "resty.acme.openssl"
-local dnsapi            = require "app.comm.sslx.dnsapi"
+local sslx              = require "app.comm.sslx"
 local request           = require "app.utils.request"
 local cjson             = require "cjson.safe"
 
@@ -440,14 +440,14 @@ function __:make_dns_record(authz_url)
 
     for _, c in ipairs(authz.challenges) do
         if c.type == "dns-01" and c.status == "pending" then
-            local ok, err = dnsapi.record_create {
+            local ok, err = sslx.dnsapi.record_create {
                 domain      = domain,
                 value       = c.token,
                 login_token = self.dnspod_token
             }
             if not ok then return nil, err end
 
-            local ok, err = dnsapi.record_create {
+            local ok, err = sslx.dnsapi.record_create {
                 domain      = domain,
                 value       = self:gen_jwk_token(c.token),
                 login_token = self.dnspod_token
@@ -476,7 +476,7 @@ function __:remove_dns_record(authz_url)
         end
     end
 
-    return dnsapi.record_remove_by_values {
+    return sslx.dnsapi.record_remove_by_values {
         domain      = authz.identifier.value,
         values      = values,
         login_token = self.dnspod_token,
