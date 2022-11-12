@@ -9,12 +9,13 @@ local getinfo       = debug.getinfo
 local gsub          = string.gsub
 local sub           = string.sub
 local lower         = string.lower
+local open          = io.open
 
 local __ = { __VERSION = "v1.0.0" }
 
 -- 检查目录是否存在
 local function path_exists(path)
-    local file, err = io.open(path)
+    local file, err = open(path)
     if file then file:close() end
     if err and sub(err, -6) == "denied" then
         -- 如果目录存在错误信息以 Permission denied 结尾
@@ -58,8 +59,12 @@ __.new = function(t, path)
             if not pok then
                 filename = apipath .. "/init.lua"
                 pok, mod = pcall(dofile, filename)
-                if not pok and exists then
-                    mod = {}  -- 目录存在: 创建空表
+                if not pok then
+                    if exists then
+                        mod = {}    -- 目录存在: 创建空表
+                    else
+                        return nil  -- 目录不存在: 返回 nil
+                    end
                 end
             end
 
