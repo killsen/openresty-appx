@@ -140,14 +140,16 @@ __.load_ocsp = function (domain_name, reload)
 
 end
 
--- 更新服务器OCSP
-local function update_ocsp(premature)
+local is_started = false
+local is_running = false
 
-    -- 定时器已过期
-    if premature then return end
+-- 执行任务
+local function run_tasks(premature)
+    if premature  then return end
+    if is_running then return end
+    is_running = true
 
     local servers = sslx.domain.load_servers()
-
     for _, domain_name in ipairs(servers) do
         local ocsp_resp = __.load_ocsp(domain_name)
         if not ocsp_resp then
@@ -155,12 +157,20 @@ local function update_ocsp(premature)
         end
     end
 
+    is_running = false
 end
 
--- 只需第一个 worker 负责
-if ngx.worker.id() == 0 then
-    ngx.timer.at   ( 0, update_ocsp)  -- 初次加载
-    ngx.timer.every(60, update_ocsp)  -- 每1分钟检查一次
+-- 开启自动更新OCSP任务
+__.run_tasks = function()
+    if is_started then return end
+       is_started = true
+    if ngx.worker.id() ~= 0 then return end
+
+    ngx.log(ngx.ERR, "start tasks: sslx.ocsp.run_tasks")
+
+    ngx.timer.at   ( 0, run_tasks)  -- 初次加载
+    ngx.timer.every(60, run_tasks)  -- 每1分钟检查一次
+
 end
 
 --------------------------------------------------------------------------------

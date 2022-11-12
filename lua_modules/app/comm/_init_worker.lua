@@ -33,7 +33,16 @@ ngx.log(ngx.ERR ,   ", index="  , index
 )
 
 -- 启动后台任务
-pcall(require, "app.comm.run_tasks")
+local pok, err = pcall(require, "app.comm.run_tasks")
+if not pok then
+    ngx.log(ngx.ERR, err)
+end
 
 -- 动态加载证书
-pcall(require, "app.comm.sslx")
+local pok, sslx = pcall(require, "app.comm.sslx")
+if not pok then
+    ngx.log(ngx.ERR, sslx)
+else
+    sslx.domain.run_tasks() -- 开启自动升级证书任务
+    sslx.ocsp.run_tasks()   -- 开启自动更新OCSP任务
+end

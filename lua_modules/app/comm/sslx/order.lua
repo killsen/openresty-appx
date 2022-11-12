@@ -70,7 +70,10 @@ __.order_cert__ = {
         { "echo?"           , "输出函数"    , "function"    },
         { "wait?"           , "等待函数"    , "function"    },
     },
-    res = "boolean"
+    res = {
+        { "cert_pem"        , "证书文件"                    },
+        { "expires_time"    , "失效时间"    , "number"      },
+    }
 }
 __.order_cert = function(t)
 
@@ -190,6 +193,7 @@ __.order_cert = function(t)
     if not cert_pem then return echo("证书下载失败: ", err) end
 
     local cert = x509.new(cert_pem)
+    local expires_time = cert:get_not_after()  -- 证书截止时间
 
     echo("证书颁发日期: ", dt.to_date(cert:get_not_before()))
     echo("证书截止日期: ", dt.to_date(cert:get_not_after()))
@@ -203,7 +207,10 @@ __.order_cert = function(t)
     echo("证书下载成功")
     echo("")
 
-    return true
+    return {
+        cert_pem     = cert_pem,
+        expires_time = expires_time
+    }
 
 end
 

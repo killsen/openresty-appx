@@ -13,6 +13,7 @@ local _sub          = string.sub
 local cert_path     = prefix .. "/conf/cert/"
 local cert_log      = prefix .. "/logs/cert.log"
 local sslx          = require "app.comm.sslx"
+local x509          = require "resty.openssl.x509"
 
 local __ = { }
 
@@ -34,7 +35,17 @@ local function read_file(file_name)
 
 end
 
--- 加载域名列表
+__.load_domains__ = {
+    "加载域名定义列表",
+    types = {
+        DomainInfo = {
+            { "domain_name"     , "待申请证书域名"              },
+            { "dnspod_token"    , "dnspod登录凭证"              },
+            { "expires_time?"   , "失效时间"        , "number"  },
+        }
+    },
+    res = "@DomainInfo[]"
+}
 __.load_domains = function ()
 
     if DOMAINS then return DOMAINS end
@@ -117,7 +128,11 @@ end
 __.order_certs = function(debug_mode)
 
     local domains = __.load_domains()
-    if #domains == 0 then return end
+
+    if #domains == 0 then
+        _echo("尚未定义域名: 请在 conf/cert/domains.json 定义")
+        return
+    end
 
     _echo("共有 ", #domains, " 个域名需要申请证书")
 
@@ -134,5 +149,95 @@ __.order_certs = function(debug_mode)
     end
 
 end
+
+-- 获取需要申请证书的域名列表
+local function get_domain_list()
+-- @return : @DomainInfo[]
+
+    local list  = {}
+
+    local domains = __.load_domains()
+    if #domains == 0 then return list end
+
+    local expires_time = ngx.time() + 24*60*60*30 -- 30天后
+
+    for _, d in ipairs(domains) do
+        if not d.expires_time then
+            local cert_pem = read_file(d.domain_name .. "-crt.pem")
+            if not cert_pem then
+                d.expires_time = 0
+            else
+                local cert = x509.new(cert_pem)
+                d.expires_time = cert:get_not_after()
+            end
+        end
+        if d.expires_time < expires_time then
+            _insert(list, d)
+        end
+    end
+
+    return list
+
+
+end
+
+-- 升级证书：证书不存在自动申请，证书快过期自动延期
+__.update_certs = function(is_tasks)
+
+    local domains = get_domain_list()
+
+    if #domains == 0 then
+        if not is_tasks then _echo("暂无需要升级的证书") end
+        return domains
+    end
+
+    _echo("共有 ", #domains, " 个域名需要申请证书")
+
+    for _, d in ipairs(domains) do
+        _echo("-------------------------------------")
+        local res, err = sslx.order.order_cert {
+            domain_name     = d.domain_name,
+            dnspod_token    = d.dnspod_token,
+            debug_mode      = false,
+            retry_times     = 10,
+            echo            = _echo,
+            wait            = _wait,
+        }
+        if res then -- 更新证书失效时间
+            d.expires_time = res.expires_time
+        end
+    end
+
+    return domains
+
+end
+
+local is_started = false
+local is_running = false
+
+-- 执行任务
+local function run_tasks(premature, is_tasks)
+    if premature  then return end
+    if is_running then return end
+    is_running = true
+
+    __.update_certs(is_tasks)
+
+    is_running = false
+end
+
+-- 开启自动升级证书任务
+__.run_tasks = function()
+    if is_started then return end
+       is_started = true
+    if ngx.worker.id() ~= 0 then return end
+
+    ngx.log(ngx.ERR, "start tasks: sslx.domain.run_tasks")
+
+    ngx.timer.at   ( 0, run_tasks, false)  -- 初次加载
+    ngx.timer.every(60, run_tasks, true )  -- 每1分钟检查一次
+
+end
+
 
 return __
