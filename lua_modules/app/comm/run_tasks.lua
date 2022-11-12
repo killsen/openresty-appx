@@ -30,5 +30,7 @@ local utils = require "app.comm.utils"
 local files = utils.file_list("app")
 
 for _, app_name in ipairs(files) do
-    ngx.timer.at(0, run_tasks, app_name)
+    if string.sub(app_name, -5) ~= "-prod" then
+        ngx.timer.at(0, run_tasks, app_name)
+    end
 end
