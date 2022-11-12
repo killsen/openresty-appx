@@ -116,7 +116,7 @@ end
 -- 申请证书
 __.order_certs = function(debug_mode)
 
-    local domains = sslx.domain.load_domains()
+    local domains = __.load_domains()
     if #domains == 0 then return end
 
     _echo("共有 ", #domains, " 个域名需要申请证书")
