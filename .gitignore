@@ -14,5 +14,6 @@ site/orpm.sh
 
 **/conf/cert/domains.json
 **/conf/cert/*-acc.pem
-**/conf/cert/*-crt.pem
 **/conf/cert/*-key.pem
+**/conf/cert/*-crt.pem
+**/conf/cert/*-tmp.pem

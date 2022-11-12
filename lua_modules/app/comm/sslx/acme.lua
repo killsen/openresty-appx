@@ -115,7 +115,7 @@ function __.new(req)
     local domain_name   = req.domain_name
     local domain_list   = req.domain_list
     local account_email = req.account_email
-    local directory_url = req.directory_url
+    local debug_mode    = req.debug_mode
     local cert_path     = req.cert_path
 
     if type(dnspod_token)  ~= "string" or dnspod_token  == "" then return nil, "dnspod_token required" end
@@ -175,8 +175,10 @@ function __.new(req)
         order_url       = nil,              -- 最后创建的订单链接
         replay_nonce    = nil,              -- 随机码(上次请求headers返回)
 
-        directory_url   = directory_url or  -- 请求接口路径
-                          "https://acme-v02.api.letsencrypt.org/directory",
+        debug_mode      = debug_mode,
+        directory_url   = debug_mode  -- 请求接口路径
+                      and "https://acme-staging-v02.api.letsencrypt.org/directory"  -- 测试接口
+                       or "https://acme-v02.api.letsencrypt.org/directory",         -- 正式接口
 
         URL = {
             keyChange   = "https://acme-v02.api.letsencrypt.org/acme/key-change",
@@ -516,7 +518,13 @@ function __:download_certificate(certificate_url)
     local  cert, err = self:post(certificate_url)
     if not cert then return nil, err end
 
-    local filename = self.cert_path .. "/" .. self.domain_name .. "-crt.pem"
+    local filename
+
+    if self.debug_mode then
+        filename = self.cert_path .. "/" .. self.domain_name .. "-tmp.pem"  -- 测试证书
+    else
+        filename = self.cert_path .. "/" .. self.domain_name .. "-crt.pem"  -- 正式证书
+    end
 
     write_file(filename, cert)
 

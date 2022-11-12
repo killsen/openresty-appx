@@ -14,11 +14,13 @@ local x509          = require "resty.openssl.x509"
 
 local __ = { }
 
+-- 实时输出
 local function _echo(...)
     ngx.say(...)
     ngx.flush()
 end
 
+-- 稍等几秒
 local function _wait(msg, seconds)
     ngx.print(msg)
     for _=1, seconds do
@@ -31,7 +33,53 @@ local function _wait(msg, seconds)
 end
 
 -- 申请证书
-__.order_cert = function(domain_name, dnspod_token, echo, wait)
+__.order_certs = function(debug_mode)
+
+    ngx.header["content-type"] = "text/plain"
+
+    local domains = sslx.domain.load_domains()
+
+    if #domains == 0 then
+        _echo("尚未定义域名: 请在 conf/cert/domains.json 定义")
+        return
+    end
+
+    _echo("共有 ", #domains, " 个域名需要申请证书")
+
+    for _, d in ipairs(domains) do
+        _echo("-------------------------------------")
+        __.order_cert {
+            domain_name     = d.domain_name,
+            dnspod_token    = d.dnspod_token,
+            debug_mode      = (debug_mode ~= false),
+            retry_times     = 10,
+            echo            = _echo,
+            wait            = _wait,
+        }
+    end
+
+end
+
+__.order_cert__ = {
+    "申请证书",
+    req = {
+        { "domain_name"     , "待申请证书域名"              },
+        { "dnspod_token"    , "dnspod登录凭证"              },
+        { "debug_mode"      , "测试模式"    , "boolean"     },
+        { "retry_times?"    , "重试几次"    , "number"      },
+        { "echo?"           , "输出函数"    , "function"    },
+        { "wait?"           , "等待函数"    , "function"    },
+    },
+    res = "boolean"
+}
+__.order_cert = function(t)
+
+    local domain_name   = t.domain_name
+    local dnspod_token  = t.dnspod_token
+    local debug_mode    = t.debug_mode
+    local retry_times   = tonumber(t.retry_times) or 10
+    local echo          = t.echo
+    local wait          = t.wait
 
     if not echo then echo = _echo end
     if not wait then wait = _wait end
@@ -45,13 +93,21 @@ __.order_cert = function(domain_name, dnspod_token, echo, wait)
         domain_name     = domain_name,
         dnspod_token    = dnspod_token,
         cert_path       = cert_path,
-        directory_url   = "https://acme-staging-v02.api.letsencrypt.org/directory",
+        debug_mode      = debug_mode,
     }
 
     if not acme then return echo(err) end
 
+    if debug_mode then
+        echo("测试接口: ", acme.directory_url)
+    else
+        echo("正式接口: ", acme.directory_url)
+    end
+
     local  ok, err = acme:init()
     if not ok then return echo("初始化acme失败: ", err) end
+
+    echo("账户地址: ", acme.account_kid)
 
     local order, err = acme:new_order()
     if not order then return echo("创建订单失败: ", err) end
@@ -62,14 +118,17 @@ __.order_cert = function(domain_name, dnspod_token, echo, wait)
     echo("截止时间: ", order.expires)
     echo("")
 
-    for _ = 1, 10 do
+    local certificate_url
+
+    for _ = 1, retry_times do
 
         ngx.sleep(1)
         order, err = acme:query_order(order_url)
-        if not order then return echo("查询订单失败: ", err) end
+        if not order then echo("查询订单失败: ", err) end
 
-        echo("订单状态: ", order.status)  -- pending/ready/processing/valid/invalid
-        echo("------------------------------------")
+        -- pending/ready/processing/valid/invalid
+        echo("订单状态: ", order.status)
+        echo("-----------------------")
 
         for i, authz_url in ipairs(order.authorizations) do
             local res, err = acme:query_authz(authz_url)
@@ -105,53 +164,46 @@ __.order_cert = function(domain_name, dnspod_token, echo, wait)
             break
 
         elseif order.status == "valid" then
-
-            local  certificate_url = order.certificate
-            echo("证书下载链接: ", certificate_url)
-            local  cert_pem, err = acme:download_certificate(certificate_url)
-            if not cert_pem then return echo("证书下载失败: ", err) end
-
-            local cert = x509.new(cert_pem)
-
-            echo("证书颁发日期: ", dt.to_date(cert:get_not_before()))
-            echo("证书截止日期: ", dt.to_date(cert:get_not_after()))
-            echo("")
-
+            certificate_url = order.certificate  -- 证书下载链接
             break
 
         elseif order.status == "ready" then
-
             local  finalize_url = order.finalize
             echo("证书申请链接: ", finalize_url)
             local  res, err = acme:finalize_order (finalize_url)
             if not res then return echo("证书申请失败: ", err) end
 
-            local  certificate_url = res.certificate
-            echo("证书下载链接: ", certificate_url)
-            local  cert_pem, err = acme:download_certificate(certificate_url)
-            if not cert_pem then return echo("证书下载失败: ", err) end
-
-            local cert = x509.new(cert_pem)
-
-            echo("证书颁发日期: ", dt.to_date(cert:get_not_before()))
-            echo("证书截止日期: ", dt.to_date(cert:get_not_after()))
-            echo("")
-
-            break
-        else
+            certificate_url = res.certificate  -- 证书下载链接
             break
         end
 
     end
 
-    echo("删除域名TXT记录")
-
-    for _, authz_url in ipairs(order.authorizations) do
-        local  res, err = acme:remove_dns_record(authz_url)
-        if not res then return echo("删除域名TXT记录失败: ", err) end
+    if type(certificate_url) ~= "string" or certificate_url == "" then
+        echo("证书下载失败")
+        return
     end
 
+    echo("证书下载链接: ", certificate_url)
+
+    local  cert_pem, err = acme:download_certificate(certificate_url)
+    if not cert_pem then return echo("证书下载失败: ", err) end
+
+    local cert = x509.new(cert_pem)
+
+    echo("证书颁发日期: ", dt.to_date(cert:get_not_before()))
+    echo("证书截止日期: ", dt.to_date(cert:get_not_after()))
     echo("")
+
+    echo("删除域名TXT记录")
+    for _, authz_url in ipairs(order.authorizations) do
+        local  res, err = acme:remove_dns_record(authz_url)
+        if not res then echo("删除域名TXT记录失败: ", err) end
+    end
+    echo("证书下载成功")
+    echo("")
+
+    return true
 
 end
 

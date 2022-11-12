@@ -98,8 +98,8 @@ __.get_domain_name = function(server_name)
 
 end
 
-
-local function echo(...)
+-- 输出日志
+local function _echo(...)
     local file = io.open(cert_log, "ab+")
     if not file then return end
     file:write(ngx.localtime(), "  ", ...)
@@ -107,20 +107,30 @@ local function echo(...)
     file:close()
 end
 
-local function wait(msg, seconds)
-    echo(msg)
+-- 等待几秒
+local function _wait(msg, seconds)
+    _echo(msg)
     ngx.sleep(seconds)
 end
 
 -- 申请证书
-__.order_certs = function()
+__.order_certs = function(debug_mode)
 
-    local domains = __.load_domains()
+    local domains = sslx.domain.load_domains()
+    if #domains == 0 then return end
+
+    _echo("共有 ", #domains, " 个域名需要申请证书")
 
     for _, d in ipairs(domains) do
-        local domain_name  = d.domain_name
-        local dnspod_token = d.dnspod_token
-        sslx.order.order_cert (domain_name, dnspod_token, echo, wait)
+        _echo("-------------------------------------")
+        sslx.order.order_cert {
+            domain_name     = d.domain_name,
+            dnspod_token    = d.dnspod_token,
+            debug_mode      = (debug_mode ~= false),
+            retry_times     = 10,
+            echo            = _echo,
+            wait            = _wait,
+        }
     end
 
 end
