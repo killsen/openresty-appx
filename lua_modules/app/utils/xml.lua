@@ -35,7 +35,7 @@ __._TESTING = function()
         website = "https://openresty.org/",
     }
 
-    -- ngx.say(xml)
+    ngx.say(xml)
 
     assert(xml == utils.xml.to_xml(obj))
 
