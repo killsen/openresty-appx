@@ -13,6 +13,8 @@ local open          = io.open
 
 local __ = { __VERSION = "v1.0.0" }
 
+local MOD_LOADED = {}
+
 -- 检查目录是否存在
 local function path_exists(path)
     local file, err = open(path)
@@ -55,6 +57,14 @@ __.new = function(t, path)
             local filename = apipath .. ".lua"
             local exists   = path_exists(apipath)
 
+            do
+                local mod = MOD_LOADED[apipath]
+                if mod ~= nil then
+                    rawset(self, key, mod)
+                    return mod
+                end
+            end
+
             local pok, mod = pcall(dofile, filename)
             if not pok then
                 filename = apipath .. "/init.lua"
@@ -76,6 +86,7 @@ __.new = function(t, path)
                 end
             end
 
+            MOD_LOADED[apipath] = mod
             rawset(self, key, mod)
             return mod
         end,
