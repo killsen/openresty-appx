@@ -3,7 +3,45 @@ local _concat = table.concat
 local _find   = ngx.re.find
 local _sub    = string.sub
 
-local __ = {}
+local __ = { _VERSION = "v1.0.0" }
+
+__._README = [==[
+# app.utils.xml
+
+一个非常简单的 xml 与 table 转换的工具
+
+```lua
+local utils = require "app.utils"
+local obj   = utils.xml.from_xml(xml)   -- xml 转成 table
+local xml   = utils.xml.to_xml(obj)     -- table 转成 xml
+```
+]==]
+
+__._TESTING = function()
+
+    local utils = require "app.utils"
+
+    -- xml 转成 table
+    local obj = utils.xml.from_xml [[
+    <xml>
+        <name>OpenResty</name>
+        <website>https://openresty.org/</website>
+    </xml>
+    ]]
+
+    -- table 转成 xml
+    local xml = utils.xml.to_xml {
+        name    = "OpenResty",
+        website = "https://openresty.org/",
+    }
+
+    -- ngx.say(xml)
+
+    assert(xml == utils.xml.to_xml(obj))
+
+    return obj
+
+end
 
 --  <key><![CDATA[val]]></key>
 --  <(\w+) > <! [CDATA [(.+) ] ] > </\1 >
@@ -11,8 +49,11 @@ local __ = {}
 local regx = [==[\<(\w+)\>([\s\S]*)\</\1\>]==]
 local regy = [==[^\s*\<!\[CDATA\[([\s\S]*)\]\]\>\s*$]==]
 
---xml转成table
+-- xml 字符串转成 table 对象
  __.from_xml = function (xml, root)
+-- @xml     : string
+-- @root    : string
+-- @return  : table
 
     if type(xml)~="string" or xml=="" then return nil end
 
@@ -20,7 +61,7 @@ local regy = [==[^\s*\<!\[CDATA\[([\s\S]*)\]\]\>\s*$]==]
     local  it, err = ngx.re.gmatch(xml, regx, "jo")
     if not it then return nil, err end
 
-    local t
+    local obj
 
     while true do
         local m, err2 = it()
@@ -30,11 +71,11 @@ local regy = [==[^\s*\<!\[CDATA\[([\s\S]*)\]\]\>\s*$]==]
         local k, v = m[1], m[2]
             local m2 = ngx.re.match(v, regy, "jo")
             v = m2 and m2[1] or __.from_xml(v, false) or v
-        t = t or {}; t[k] = v
+        obj = obj or {}; obj[k] = v
     end
 
     if root == nil then root = "xml" end
-    return t and root and t[root] or t
+    return obj and root and obj[root] or obj
 
 end
 
@@ -59,15 +100,18 @@ local function get_val (val)
 
 end
 
---table转成xml
-__.to_xml = function (t, root)
+-- table 对象转成 xml 字符串
+__.to_xml = function (obj, root)
+-- @obj     : table
+-- @root    : string
+-- @return  : string
 
     root = root or "xml"
 
     local xml, i = {}, 0
 
     i=i+1; xml[i] = "<".. root ..">"
-        for k, v in pairs(t) do
+        for k, v in pairs(obj) do
             if type(v)=="table" then
                 i=i+1; xml[i] = __.to_xml(v, k)
             else
