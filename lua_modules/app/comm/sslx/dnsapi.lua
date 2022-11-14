@@ -58,7 +58,8 @@ __.types = {
 }
 
 __.record_list__ = {
-    "记录列表",  -- https://docs.dnspod.cn/api/record-list/
+    "记录列表",
+    doc = "https://docs.dnspod.cn/api/record-list/",
     req = {
         { "domain"          , "域名"     },
         { "login_token"     , "登录凭证" },
@@ -90,7 +91,8 @@ __.record_list = function (t)
 end
 
 __.record_create__ = {
-    "添加记录",  -- https://docs.dnspod.cn/api/add-record/
+    "添加记录",
+    doc = "https://docs.dnspod.cn/api/add-record/",
     req = {
         { "domain"          , "域名"     },
         { "value"           , "记录值"   },
@@ -124,7 +126,8 @@ __.record_create = function (t)
 end
 
 __.record_remove__ = {
-    "删除记录",  -- https://docs.dnspod.cn/api/delete-record/
+    "删除记录",
+    doc = "https://docs.dnspod.cn/api/delete-record/",
     req = {
         { "domain"          , "域名"     },
         { "record_id"       , "记录编号" },
