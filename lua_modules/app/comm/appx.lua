@@ -65,6 +65,7 @@ function _M.new (app_name)  --@@
         ver         = conf.ver,
         db_config   = conf.db_config,
         help_html   = conf.help_html,
+        help_config = conf.help_config,
         db          = db,
         db_execute  = db.execute,
         mod_loaded  = {},
@@ -108,7 +109,6 @@ end
 function _M:init_dao ()
 
     local args = ngx.req.get_uri_args()
-
     daox.init_dao {
         app_name    = self.name,
         dao_name    = args.name,

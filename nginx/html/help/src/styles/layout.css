@@ -1,0 +1,143 @@
+/**
+ * 应用布局样式
+ * v22.11.13
+ */
+
+.layout {
+    position: relative;
+    height: 100vh;
+    width: 1375px;
+    min-width: 1200px;
+    min-height: 500px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.layout--empty {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--el-color-white);
+}
+
+.layout--empty svg {
+    width: 80%;
+    height: 400px;
+}
+
+/* --- 顶部区域 start ------------------------------------------------------------*/
+.layout-header {
+    position: absolute;
+    height: var(--layout-header-height);
+    top: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 3;
+    background-color: var(--el-color-white);
+}
+
+.layout-header::after {
+    content: "";
+    position: fixed;
+    top: var(--layout-header-height);
+    left: 0;
+    right: 0;
+    border-bottom: 1px solid var(--el-border-color);
+}
+
+.layout-header__right {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    box-sizing: border-box;
+    padding-right: 15px;
+}
+
+.layout-header__right .el-button + .el-button {
+    margin-left: 0;
+}
+
+.layout-header__logo {
+    display: flex;
+    align-items: center;
+    padding-left: 35px;
+    width: var(--layout-aside-width);
+    box-sizing: border-box;
+    margin-right: 15px;
+}
+
+.layout-header__logo .el-icon {
+    margin-right: 8px;
+}
+/* --- 顶部区域 end ------------------------------------------------------------*/
+
+/* --- 侧边导航 start ------------------------------------------------------------*/
+.layout-aside {
+    position: absolute;
+    left: 0;
+    top: var(--layout-header-height);
+    bottom: 0;
+    width: var(--layout-aside-width);
+    z-index: 2;
+    padding: 15px;
+    box-sizing: border-box;
+    border-right: 1px solid var(--el-border-color);
+    background-color: var(--el-color-white);
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    text-decoration: none;
+    color: var(--el-text-color-primary);
+}
+
+.nav-item .el-icon {
+    margin-right: 8px;
+}
+
+.nav-item:hover {
+    color: var(--el-color-primary);
+}
+
+.nav-item.is-active {
+    background: var(--el-color-primary);
+    color: var(--el-color-white);
+}
+/* --- 侧边导航 end ------------------------------------------------------------*/
+
+/* --- 右侧内容 start ------------------------------------------------------------*/
+.layout-main {
+    position: absolute;
+    left: var(--layout-aside-width);
+    top: var(--layout-header-height);
+    right: 0;
+    bottom: 0;
+    padding: 15px;
+    box-sizing: border-box;
+    /* background-color: var(--bg-color-page); */
+}
+
+.layout-main > .el-scrollbar {
+    background-color: var(--el-color-white);
+    padding: 15px;
+    box-sizing: border-box;
+    border-radius: 5px;
+}
+/* --- 右侧内容 start ------------------------------------------------------------*/

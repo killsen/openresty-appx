@@ -1,0 +1,148 @@
+:root {
+    --layout-header-height: 56px;
+    --layout-aside-width: 220px;
+    --el-color-primary: #626aef;
+    --el-color-primary-light-1: #7279f1;
+    --el-color-primary-light-2: #8188f2;
+    --el-color-primary-light-3: #9197f4;
+    --el-color-primary-light-4: #a1a6f5;
+    --el-color-primary-light-5: #b1b5f7;
+    --el-color-primary-light-6: #c0c3f9;
+    --el-color-primary-light-7: #d0d2fa;
+    --el-color-primary-light-8: #e0e1fc;
+    --el-color-primary-light-9: #eff0fd;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    font-size: 14px;
+    color: var(--el-text-color-primary);
+    overflow: hidden;
+}
+
+/* 文字颜色 */
+.text-color-primary {
+    color: var(--el-text-color-primary);
+}
+.text-color-secondary {
+    color: var(--el-text-color-secondary);
+}
+.text-color-disabled {
+    color: var(--el-text-color-disabled);
+}
+
+/* 链接图标 */
+.icon-jump {
+    display: inline-block;
+    margin-top: -2px;
+    margin-left: 4px;
+    width: 11px;
+    height: 11px;
+    fill: var(--el-text-color-placeholder);
+}
+
+/* --- 代码容器 ------------------------------------------------- */
+.code-iframe-wrap {
+    height: 400px;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    outline: none;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 15px;
+    box-sizing: border-box;
+    background-color: #f5f7fa;
+}
+
+/* --- ui 列表展示 ------------------------------------------------- */
+.ul-list-item {
+    display: flex;
+    align-items: center;
+    padding-bottom: 5px;
+}
+
+.ul-list-item span:first-child {
+    flex: 1;
+    margin-right: 10px;
+    text-align: right;
+}
+.ul-list-item span:last-child {
+    flex: 1;
+    text-align: left;
+}
+
+.ul-list-item__desc {
+    font-size: 13px;
+    color: var(--el-text-color-secondary);
+}
+
+.ul-list-item + .ul-list-item {
+    margin-top: 5px;
+}
+
+.ul-list .ul-list-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+
+/* --- element-plus 样式重置 ------------------------------------------------- */
+.dialog-header {
+    display: flex;
+    align-items: center;
+}
+
+.dialog-header > span:first-child {
+    font-size: 16px;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.el-button[large] {
+    min-width: 90px;
+}
+
+.el-dialog__body {
+    padding: 10px 20px 20px 20px;
+}
+
+.el-dialog__footer .el-button {
+    min-width: 90px;
+}
+
+.el-overlay-dialog {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto !important;
+}
+
+.el-overlay-dialog .el-dialog {
+    margin: 0;
+}
+
+.help-loading .el-loading-spinner {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    left: 50%; top: 50%;
+    margin-left: -50px;
+    margin-top: -50px!important;
+    width: 100px;
+    height: 100px;
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.help-loading .el-loading-spinner .circular,
+.help-loading .el-loading-spinner .el-loading-text {
+    color: #eee;
+}

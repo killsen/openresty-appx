@@ -120,6 +120,21 @@ return function(app_name, base_path, base_name, args)
     base_path = base_path or ("app/" .. app_name .. "/api/")
     base_name = base_name or  ""
 
+    -- 自定义帮助文档
+    if app.help_config and app.help_config.template then
+        local _path_list  = {} -- 顶部有相同变量
+        load_path(_path_list, "app/" .. app_name .. "/api/", "")
+        table.sort(_path_list)
+
+        local i, apis = 1, {}
+        for _, name in ipairs(_path_list) do
+            apis[i] = _codes(name)
+            i = i + 1
+        end
+
+        return apis
+    end
+
     args = args or ngx.req.get_uri_args()
     local api = args.api
 
