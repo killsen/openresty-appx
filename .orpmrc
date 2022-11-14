@@ -10,7 +10,7 @@
     "libs":  {
                  "killsen/openresty-lua-types":  "master",
                  "killsen/openresty-clib":  "master",
-                 "killsen/lua-resty-ipdb-jit":  "v0.1.1",
+                 "killsen/lua-resty-ipdb-jit":  "v0.1.2",
                  "guosiu/lua-resty-date":  "v2.2",
                  "bungle/lua-resty-prettycjson":  "v1.6",
                  "bungle/lua-resty-template":  "v2.0",
