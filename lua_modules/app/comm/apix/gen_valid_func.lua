@@ -1,7 +1,6 @@
 
 -- 生成参数校验函数接口 v20.10.22
 
-local gen_valid_code = require "app.comm.apix.gen_valid_code"
 local type           = type
 local pcall          = pcall
 local loadstring     = loadstring
@@ -28,12 +27,18 @@ local function gen_act(act_fun, valid_fun)
     end
 end
 
+local gen_valid_code
+
 return function (mod)
 
     if type(mod) ~= "table" then return end
 
     if mod_loaded[mod] then return end
        mod_loaded[mod] = true
+
+    if not gen_valid_code then
+        gen_valid_code = require "app.comm.apix".gen_valid_code
+    end
 
     -- 生成参数验证函数代码
     local codes = gen_valid_code(mod)

@@ -1,7 +1,8 @@
 
 -- 生成 api.d.ts v21.09.09
 
-local utils             = require "app.comm.apix.gen_api_utils"
+local apix              = require "app.comm.apix"
+local utils             = apix.gen_api_utils
 local load_path         = utils.load_path
 local get_namex         = utils.get_namex
 local get_max_key_len   = utils.get_max_key_len

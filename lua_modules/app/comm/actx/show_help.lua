@@ -52,13 +52,17 @@ local function show_help(app_name)
 
     if help_config_template then
         template.render ( help_html, {
+            app_name    = app.name,
+            app_title   = app.title,
+            app_ver     = app.ver,
+
             G = cjson.encode({
                 app_name    = app.name,
                 app_title   = app.title,
                 app_ver     = app.ver,
                 help_html   = app.help_html,
                 help_config = app.help_config,
-                app_apis    = apix.gen_api_code(app.name),
+                app_apis    = apix.load_apis(app.name),
                 app_acts    = actx.load_acts(app.name),
                 app_daos    = daox.load_daos(app.name),
             })

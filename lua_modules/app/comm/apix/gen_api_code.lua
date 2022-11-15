@@ -1,24 +1,22 @@
 
 -- 生成参数校验函数代码 v21.08.30
 
-local gen_valid_code    = require "app.comm.apix.gen_valid_code"
-local file_list         = require "app.comm.utils".file_list
-local path_list         = require "app.comm.utils".path_list
-
-local _split            = require "ngx.re".split
-local _insert           = table.insert
+local apix      = require "app.comm.apix"
+local utils     = require "app.comm.utils"
+local _split    = require "ngx.re".split
+local _insert   = table.insert
 
 -- 加载 api 目录及其子目录下全部 lua 文件
 local function load_path (list, path, name)
 
     -- 文件列表
-    local flist = file_list (path)
+    local flist = utils.file_list (path)
         for _, f in ipairs(flist) do
             _insert(list, name .. f)
         end
 
     -- 目录列表
-    local plist = path_list (path)
+    local plist = utils.path_list (path)
         for _, p in ipairs(plist) do
             load_path(list, path .. p .. "/",
                             name .. p .. ".")
@@ -42,74 +40,6 @@ local function _err(api, codes, err)
 
 end
 
-local function _codes(api)
-
-    local t = {
-        name    = api,
-        ver     = "",
-        ok      = false,
-        err     = "",
-        codes   = "",
-        actions = {},
-    }
-
-    local mod = _load("api." .. api)
-    if not mod then
-        t.err = "api不存在"
-        return t
-    end
-
-    if type(mod) ~= "table" then
-        t.err = "不是对象"
-        return t
-    end
-
-    local ver = mod._VERSION or mod.version or mod.ver or mod._ver
-    if type(ver) ~= "string" then
-        t.ver = ""
-    else
-        t.ver = "v" .. ver:gsub("v", "")
-    end
-
-    for k, v in pairs(mod) do
-        if type(k) == "string" and type(v) == "function" then
-            local r = mod[k .. "__"]
-            if type(r) == "table" and type(r[1]) == "string" then
-                k = k .. " " .. r[1]
-            end
-
-            table.insert(t.actions, k)
-        end
-    end
-
-    local codes = gen_valid_code(mod)
-    if not codes then
-        t.err = "未声明参数定义"
-        return t
-    end
-
-    t.codes = codes
-
-    -- 生成参数验证函数构造函数
-    local ok, valid_make, err = pcall(loadstring, codes)
-    if not ok or type(valid_make) ~= "function" then
-        t.err = err
-        return t
-    end
-
-    -- 生成参数验证函数
-    local ok, valid_mod = pcall(valid_make)
-    if not ok or type(valid_mod) ~= "table" then
-        t.err = valid_mod or "未返回模块（table）"
-        return t
-    end
-
-    t.ok = true
-
-    return t
-
-end
-
 return function(app_name, base_path, base_name, args)
 
     local app = require "app.comm.appx".new(app_name)
@@ -119,21 +49,6 @@ return function(app_name, base_path, base_name, args)
 
     base_path = base_path or ("app/" .. app_name .. "/api/")
     base_name = base_name or  ""
-
-    -- 自定义帮助文档
-    if app.help_config and app.help_config.template then
-        local _path_list  = {} -- 顶部有相同变量
-        load_path(_path_list, "app/" .. app_name .. "/api/", "")
-        table.sort(_path_list)
-
-        local i, apis = 1, {}
-        for _, name in ipairs(_path_list) do
-            apis[i] = _codes(name)
-            i = i + 1
-        end
-
-        return apis
-    end
 
     args = args or ngx.req.get_uri_args()
     local api = args.api
@@ -149,7 +64,7 @@ return function(app_name, base_path, base_name, args)
     if type(api) == "string" and api ~= "" then
         ngx.header['content-type'] = "text/plain"
         ngx.header['language'] = "lua"
-        local t = _codes(base_name .. api)
+        local t = apix.load_api(base_name .. api)
         if t.ok then
             ngx.say(t.codes)
         else
@@ -202,11 +117,6 @@ ngx.say [[
 <body>
 ]]
 
-    local list = {}
-
-    load_path (list, base_path, "")
-    table.sort(list)
-
     local url1 = "/" .. app_name .. "/api"      .. query
     local url2 = "/" .. app_name .. "/api.d.ts" .. query
     local url3 = "/" .. app_name .. "/api.js"   .. query
@@ -217,7 +127,7 @@ ngx.say [[
     ngx.say('   <a style="margin-left: 20px;" target="_blank" href="', url3,'"', ">api.js</a>")
     ngx.say("</h2>")
 
-    local base_list = path_list("app/" .. app_name .. "/api")
+    local base_list = utils.path_list("app/" .. app_name .. "/api")
     if #base_list > 0 then
         ngx.say("<h3>")
         local url = "/" .. app_name .. "/api"
@@ -243,8 +153,13 @@ ngx.say [[
     ngx.say("   <th>错误信息</th>")
     ngx.say("</tr>")
 
+    local list = {}
+
+    load_path (list, base_path, "")
+    table.sort(list)
+
     for i, name in ipairs(list) do
-        local t = _codes(base_name .. name)
+        local t = apix.load_api(base_name .. name)
 
         ngx.say("<tr>")
         ngx.say("   <th>", i , "</th>")
