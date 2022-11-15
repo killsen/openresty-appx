@@ -33,10 +33,10 @@
                             <el-icon :size="16">
                                 <icon-app></icon-app>
                             </el-icon>
-                            <span style="font-size: 16px; font-weight: bold;">{{ g.app_title }}</span>
+                            <span style="font-size: 16px; font-weight: bold;" v-cloak>{{ g.app_title }}</span>
                         </div>
                         <span style="margin: 0 5px;">当前版本:</span>
-                        <el-tag type="primary" disable-transitions>{{ g.app_ver }}</el-tag>
+                        <el-tag type="primary" disable-transitions  v-cloak>{{ g.app_ver }}</el-tag>
                         <div class="layout-header__right">
                             <el-button text  @click="handleReload">
                                 <template #icon>

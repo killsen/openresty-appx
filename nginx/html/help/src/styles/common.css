@@ -45,6 +45,10 @@ html, body {
     fill: var(--el-text-color-placeholder);
 }
 
+[v-cloak] {
+    display: none;
+}
+
 /* --- 代码容器 ------------------------------------------------- */
 .code-iframe-wrap {
     height: 400px;

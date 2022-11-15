@@ -1,44 +1,57 @@
 
-local help_html         -- 网页
+local help_html
+local function get_def_help()
+
+    if help_html ~= nil then
+        return help_html
+    else
+        help_html = false
+    end
+
+    local info = debug.getinfo(1, "S")
+    local path = string.sub(info.source, 2)  -- 去掉开头的@符号
+    path = string.gsub(path, "show_help.lua", "help.html")
+
+    local file = io.open(path, "rb")
+    if not file then return end
+
+    help_html = file:read("a"); file:close()
+    return help_html
+
+end
+
+local app_helps = {}
+local function get_app_help(app_name)
+
+    local app = require "app.comm.appx".new(app_name)
+    if not app then return end
+
+    local html = app_helps[app_name]
+
+    if html ~= nil then
+        return html
+    else
+        app_helps[app_name] = false
+    end
+
+    local path = type(app.help_config) == "table" and app.help_config.template
+    if type(path) ~= "string" or path == "" then return end
+
+    path = ngx.config.prefix() .. "/html/" .. path
+
+    local file = io.open(path, "rb")
+    if not file then return end
+
+    html = file:read("a"); file:close()
+    app_helps[app_name] = html
+    return html
+
+end
 
 local function show_help(app_name)
 
     local app = require "app.comm.appx".new(app_name)
     if not app then return ngx.exit(404) end
-
-    -- 应用配置模板位置
-    local help_config_template = app.help_config.template
-
-    if not help_html then
-        local file
-
-        -- 加载应用配置的帮助模板
-        if help_config_template then
-            local str  = require "app.utils.str"
-            local temp = help_config_template
-
-            -- 远程模板
-            if str.startsWith(temp, 'https://') or str.startsWith(temp, 'http://') then
-                -- TODO: 待实现
-            else
-                -- 本地模板
-                local temp_path = ngx.config.prefix() .. ("html/" .. help_config_template)
-                file = io.open(temp_path, "rb")
-            end
-        end
-
-        -- 默认模板托底
-        if not file then
-            local info = debug.getinfo(1, "S")
-            local path = string.sub(info.source, 2)  -- 去掉开头的@符号
-            path = string.gsub(path, "show_help.lua", "help.html")
-            file = io.open(path, "rb")
-        end
-
-        if not file then return ngx.exit(404) end
-        help_html = file:read("a")
-        file:close()
-    end
 
     local template  = require "resty.template"
     local cjson     = require "cjson.safe"
@@ -48,10 +61,12 @@ local function show_help(app_name)
 
     -- app:clean_up()
 
-    ngx.header["content-type"] = "text/html; charset=utf-8"
+    local app_help = get_app_help(app_name)
+    local def_help = get_def_help()
 
-    if help_config_template then
-        template.render ( help_html, {
+    if app_help then
+        ngx.header["content-type"] = "text/html; charset=utf-8"
+        template.render ( app_help, {
             app_name    = app.name,
             app_title   = app.title,
             app_ver     = app.ver,
@@ -67,8 +82,10 @@ local function show_help(app_name)
                 app_daos    = daox.load_daos(app.name),
             })
         })
-    else
-        template.render ( help_html, {
+
+    elseif def_help then
+        ngx.header["content-type"] = "text/html; charset=utf-8"
+        template.render ( def_help, {
             app_name    = app.name,
             app_title   = app.title,
             app_ver     = app.ver,
@@ -76,6 +93,9 @@ local function show_help(app_name)
             app_acts    = actx.load_acts(app.name),
             app_daos    = daox.load_daos(app.name),
         })
+
+    else
+        ngx.exit(404)
     end
 end
 
