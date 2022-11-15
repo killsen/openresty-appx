@@ -11,7 +11,7 @@
 
 local util              = require "resty.acme.util"
 local openssl           = require "resty.acme.openssl"
-local dnsapi            = require "app.comm.sslx.dnsapi"
+local sslx              = require "app.comm.sslx"
 local request           = require "app.utils.request"
 local cjson             = require "cjson.safe"
 
@@ -440,16 +440,19 @@ function __:make_dns_record(authz_url)
 
     for _, c in ipairs(authz.challenges) do
         if c.type == "dns-01" and c.status == "pending" then
-            local token = c.token
-
-            local  ok, err = dnsapi.record_create(domain, token, self.dnspod_token)
+            local ok, err = sslx.dnsapi.record_create {
+                domain      = domain,
+                value       = c.token,
+                login_token = self.dnspod_token
+            }
             if not ok then return nil, err end
-            ngx.sleep(1)
 
-            token = self:gen_jwk_token(c.token)
-            local  ok, err = dnsapi.record_create(domain, token, self.dnspod_token)
+            local ok, err = sslx.dnsapi.record_create {
+                domain      = domain,
+                value       = self:gen_jwk_token(c.token),
+                login_token = self.dnspod_token
+            }
             if not ok then return nil, err end
-            ngx.sleep(1)
         end
     end
 
@@ -464,24 +467,20 @@ function __:remove_dns_record(authz_url)
     local  authz, err = self:query_authz(authz_url)
     if not authz then return nil, err end
 
-    local domain = authz.identifier.value
+    local values = {}
 
     for _, c in ipairs(authz.challenges) do
         if c.type == "dns-01" then
-            local token = c.token
-
-            local  ok, err = dnsapi.record_remove_by_value(domain, token, self.dnspod_token)
-            if not ok then return nil, err end
-            ngx.sleep(1)
-
-            token = self:gen_jwk_token(c.token)
-            local  ok, err = dnsapi.record_remove_by_value(domain, token, self.dnspod_token)
-            if not ok then return nil, err end
-            ngx.sleep(1)
+            values[c.token] = true
+            values[self:gen_jwk_token(c.token)] = true
         end
     end
 
-    return true
+    return sslx.dnsapi.record_remove_by_values {
+        domain      = authz.identifier.value,
+        values      = values,
+        login_token = self.dnspod_token,
+    }
 
 end
 

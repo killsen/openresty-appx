@@ -17,7 +17,6 @@ local headers = {
 -- POST请求
 -- https://docs.dnspod.cn/api/api-public-request/
 local function _post(url, args, succ_code)
--- @return : table
 
     local res, err = request(url, {
         method  = "POST",
@@ -40,18 +39,46 @@ local function _post(url, args, succ_code)
 
 end
 
--- 记录列表
--- https://docs.dnspod.cn/api/record-list/
-__.record_list = function (domain, login_token)
--- @return : table
+__.types = {
+    DnsRecord = {
+        id                  = "//记录ID编号",
+        name                = "//子域名(主机记录)",
+        line                = "//解析记录的线路",
+        line_id             = "//解析记录的线路ID",
+        type                = "//记录类型",
+        ttl                 = "//记录的 TTL 值",
+        value               = "//记录值",
+        mx                  = "//记录的 MX 记录值, 非 MX 记录类型，默认为 0",
+        enabled             = "//记录状态: 0 禁用 1 启用",
+        monitor_status      = "//监控状态: '' 未开启D监控 Ok 正常 Warn 报警 Down 宕机",
+        remark              = "//记录备注",
+        updated_on          = "//记录最后更新时间",
+        use_aqb             = "//是否开通网站安全中心: yes 已经开启 no 未开启",
+    }
+}
+
+__.record_list__ = {
+    "记录列表",
+    doc = "https://docs.dnspod.cn/api/record-list/",
+    req = {
+        { "domain"          , "域名"     },
+        { "login_token"     , "登录凭证" },
+        { "sub_domain?"     , "主机记录: 这里默认为 '_acme-challenge'" },
+        { "record_type?"    , "记录类型: 这里默认为 'TXT'"  },
+        { "record_line?"    , "记录线路: 这里默认为 '默认'" },
+    },
+    res = "@DnsRecord[]"
+}
+__.record_list = function (t)
 
     local url  = "https://dnsapi.cn/Record.List"
     local args = {
-        login_token = login_token,
         format      = "json",
-        domain      = domain,
-        sub_domain  = "_acme-challenge",
-        record_type = "TXT",
+        domain      = t.domain,
+        login_token = t.login_token,
+        sub_domain  = t.sub_domain  or "_acme-challenge",
+        record_type = t.record_type or "TXT",
+        record_line = t.record_line or "默认",
     }
 
     -- 返回值 1   : 操作成功
@@ -63,20 +90,30 @@ __.record_list = function (domain, login_token)
 
 end
 
--- 添加记录
--- https://docs.dnspod.cn/api/add-record/
-__.record_create = function (domain, value, login_token)
--- @return : boolean
+__.record_create__ = {
+    "添加记录",
+    doc = "https://docs.dnspod.cn/api/add-record/",
+    req = {
+        { "domain"          , "域名"     },
+        { "value"           , "记录值"   },
+        { "login_token"     , "登录凭证" },
+        { "sub_domain?"     , "主机记录: 这里默认为 '_acme-challenge'" },
+        { "record_type?"    , "记录类型: 这里默认为 'TXT'"  },
+        { "record_line?"    , "记录线路: 这里默认为 '默认'" },
+    },
+    res = "boolean"
+}
+__.record_create = function (t)
 
     local url  = "https://dnsapi.cn/Record.Create"
     local args = {
-        login_token = login_token,
         format      = "json",
-        domain      = domain,
-        sub_domain  = "_acme-challenge",
-        record_type = "TXT",
-        value       = value,
-        record_line = "默认",
+        domain      = t.domain,
+        value       = t.value,
+        login_token = t.login_token,
+        sub_domain  = t.sub_domain  or "_acme-challenge",
+        record_type = t.record_type or "TXT",
+        record_line = t.record_line or "默认",
     }
 
     -- 返回值 1   : 操作成功
@@ -88,17 +125,24 @@ __.record_create = function (domain, value, login_token)
 
 end
 
--- 删除记录
--- https://docs.dnspod.cn/api/delete-record/
-__.record_remove = function (domain, record_id, login_token)
--- @return : boolean
+__.record_remove__ = {
+    "删除记录",
+    doc = "https://docs.dnspod.cn/api/delete-record/",
+    req = {
+        { "domain"          , "域名"     },
+        { "record_id"       , "记录编号" },
+        { "login_token"     , "登录凭证" },
+    },
+    res = "boolean"
+}
+__.record_remove = function (t)
 
     local url  = "https://dnsapi.cn/Record.Remove"
     local args = {
-        login_token = login_token,
         format      = "json",
-        domain      = domain,
-        record_id   = record_id,
+        domain      = t.domain,
+        record_id   = t.record_id,
+        login_token = t.login_token,
     }
 
     -- 返回值 1   : 操作成功
@@ -110,22 +154,38 @@ __.record_remove = function (domain, record_id, login_token)
 
 end
 
--- 删除记录（按值）
--- https://docs.dnspod.cn/api/delete-record/
-__.record_remove_by_value = function (domain, value, login_token)
--- @return : boolean
+__.record_remove_by_values__ = {
+    "删除记录（按值）",
+    req = {
+        { "domain"          , "域名"                    },
+        { "values"          , "记录值列表"  , "table"   },
+        { "login_token"     , "登录凭证"                },
+    },
+    res = "boolean"
+}
+__.record_remove_by_values = function (t)
 
-    local  records, err = __.record_list(domain, login_token)
+    if next(t.values) == nil then return true end
+
+    local  records, err = __.record_list(t)
     if not records then return nil, err end
 
+    local ok, err = true, nil
+
     for _, record in ipairs(records) do
-        if record.value == value then
-            local ok, err = __.record_remove(domain, record.id, login_token)
-            if not ok then return nil, err end
+        if t.values[record.value] then
+            local ok2, err2 = __.record_remove {
+                domain      = t.domain,
+                record_id   = record.id,
+                login_token = t.login_token,
+            }
+            if not ok2 then
+                ok, err = ok2, err2
+            end
         end
     end
 
-    return true
+    return ok, err
 
 end
 

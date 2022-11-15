@@ -3,16 +3,19 @@ local __ = {}
 
 local appx = require "app.comm.appx"
 
+-- 服务器信息
 __.info = function()
     local pok, resty_info = pcall(require, "resty.info")
     if not pok then return ngx.exit(404) end
     resty_info.info()
 end
 
+-- 服务器监控
 __.monitor = function()
     require "app.comm.monitor".start()
 end
 
+-- 认证校验
 __.auth = function()
 
     -- Nginx-Lua HTTP 401 认证校验
@@ -35,7 +38,7 @@ __.auth = function()
 
 end
 
--- 帮助文档 v20.08.21 by Killsen ------------------
+-- 程序助手
 __.help = function()
 
     local  app_name = ngx.var.app_name
@@ -63,7 +66,7 @@ __.help = function()
 
 end
 
--- 程序入口 v20.08.21 by Killsen ------------------
+-- 程序入口
 __.main = function()
 
     -- 程序名称
@@ -80,46 +83,20 @@ __.main = function()
 
 end
 
--- 程序调试 v22.10.28 by Killsen ------------------
+-- 程序调试
 __.debug = function()
 
-    -- 仅用于本机调试
-    if ngx.var.remote_addr ~= "127.0.0.1" or
-        ngx.var.http_user_agent ~= "sublime" then
-        return ngx.exit(403)
-    end
+    local actx = require "app.comm.actx"
 
-    -- 运行的lua文件
-    local file_name = ngx.var.http_file_name
-    ngx.ctx.file_name = file_name
-    if not file_name or file_name == "" then
-        return ngx.exit(403)
-    end
+    -- 获取调试文件或代码
+    local file_name, codes = actx.debug.get_debug_file()
+    if not file_name then return ngx.exit(403) end
 
-    -- 程序名称
-    local app_name = ngx.var.http_app_name
-    if app_name and app_name ~= "" then
-        ngx.ctx.app_name = app_name
-    end
+    -- 重新加载 appx
+    appx = actx.debug.reload_appx()
 
-    local pok, func
-
-    if ngx.req.get_method() == "POST" then
-        ngx.req.read_body()
-        local codes = ngx.req.get_body_data()
-        pok, func = pcall(loadstring, codes)
-    else
-        pok, func = pcall(loadfile, file_name)
-    end
-
-    if not pok then
-        return ngx.say(func)
-    end
-
-    local pok, err = pcall(func)
-    if not pok then
-        return ngx.say(err)
-    end
+    -- 执行调试文件或代码
+    actx.debug.do_debug_file(file_name, codes)
 
 end
 
