@@ -11,13 +11,20 @@ app.db_config  = {
     host       = "127.0.0.1"    -- 服务器IP
 ,   port       = 3306           -- 服务器端口
 ,   user       = "root"         -- 登录账号
-,   password   = "sumdoo"        -- 登录密码
+,   password   = "sumdoo"       -- 登录密码
 ,   database   = "demo_db"      -- 默认数据库
 }
 
 --- 帮助文档 --------------------------------------
 app.help_html  = [[
 ]]
+
+--- 帮助文档配置 ----------------------------------
+app.help_config = {
+    template = 'help/index.html', -- help 网页模板所在地址：远程地址、本地地址
+    gitee    = ''               , -- Gitee 工作台地址
+    dev_url  = ''               , -- 测服访问地址
+}
 
 ---------------------------------------------------
 return app
