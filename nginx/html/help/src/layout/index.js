@@ -42,9 +42,10 @@ const template = `
                 @click="curr_nav = item.id"
             >
                 <el-icon>
-                    <icon-menu-api v-if="item.icon === 'icon-menu-api'"></icon-menu-api>
-                    <icon-menu-act v-if="item.icon === 'icon-menu-act'"></icon-menu-act>
-                    <icon-menu-db  v-if="item.icon === 'icon-menu-db'"></icon-menu-db>
+                    <icon-menu-intro v-if="item.icon === 'icon-menu-intro'"></icon-menu-intro>
+                    <icon-menu-api   v-if="item.icon === 'icon-menu-api'"  ></icon-menu-api>
+                    <icon-menu-act   v-if="item.icon === 'icon-menu-act'"  ></icon-menu-act>
+                    <icon-menu-db    v-if="item.icon === 'icon-menu-db'"   ></icon-menu-db>
                 </el-icon>
                 <span>
                     {{ item.name }}
@@ -54,6 +55,8 @@ const template = `
     </div>
 
     <div class="layout-main">
+        <!-- 项目介绍 -->
+        <app-intro v-if="curr_nav === 'app-intro'" :g="g"></app-intro>
         <!-- API 接口管理 -->
         <api-manage v-if="curr_nav === 'api-manage'" :g="g"></api-manage>
         <!-- ACT 接口管理 -->
@@ -70,18 +73,20 @@ const template = `
 </div>
 `
 
-// 左侧导航菜单
-const navs = [
-    { id: 'api-manage'  , name: 'API 接口'  , icon: 'icon-menu-api' },
-    { id: 'act-manage'  , name: 'ACT 接口'  , icon: 'icon-menu-act' },
-    { id: 'db-manage'   , name: '数据库管理', icon: 'icon-menu-db'  },
-    { id: 'db-structure', name: '数据库结构', icon: 'icon-menu-db'  },
-]
 
 export default {
     data() {
         const G           = window.G      || {}
         const help_config = G.help_config || {}
+
+        // 左侧导航菜单
+        const navs = [
+            { id: 'app-intro'   , name: '项目介绍'  , icon: 'icon-menu-intro', show: !!G.help_html },
+            { id: 'api-manage'  , name: 'API 接口'  , icon: 'icon-menu-api'   },
+            { id: 'act-manage'  , name: 'ACT 接口'  , icon: 'icon-menu-act'   },
+            { id: 'db-manage'   , name: '数据库管理', icon: 'icon-menu-db'    },
+            { id: 'db-structure', name: '数据库结构', icon: 'icon-menu-db'    },
+        ].filter(item => item.show !== false)
 
         // 初始化链接配置、过滤为空的配置
         const links = (help_config.links || []).filter(item => {
@@ -95,17 +100,15 @@ export default {
         return {
             // 注入数据
             g: {
-                app_name : G.app_name  || '',
-                app_title: G.app_title || '',
-                app_ver  : G.app_ver   || '',
-                app_apis : G.app_apis  || [],
-                app_acts : G.app_acts  || [],
-                app_daos : G.app_daos  || [],
-                app_daox : null,
-                help_config: {
-                    ...help_config,
-                    links
-                },
+                app_name   : G.app_name  || '',
+                app_title  : G.app_title || '',
+                app_ver    : G.app_ver   || '',
+                app_apis   : G.app_apis  || [],
+                app_acts   : G.app_acts  || [],
+                app_daos   : G.app_daos  || [],
+                app_daox   : null,
+                app_intro  : G.help_html || '', // 项目介绍内容
+                help_config: { ...help_config, links },
             },
 
             // 程序数据
