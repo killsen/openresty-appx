@@ -1,80 +1,12 @@
 
--- 模块加载器 v21.08.26 by Killsen ------------------
+-- 模块加载器 ------------------
 
 local require   = require
 local pcall     = pcall
-local type      = type
-local rawget    = rawget
-local rawset    = rawset
-local pairs     = pairs
-local ipairs    = ipairs
 local ssub      = string.sub
 
 -- 生成参数校验函数接口
-local gen_valid_func = require "app.comm.apix.gen_valid_func"
-
--- 模块懒加载
-local function lazy_load (mod_name)
-
-    -- 载入模块
-    local ok, mod = pcall(require, mod_name)
-    if not ok then return false, nil end
-
-    -- 模块互相引用将返回数字类型的值
-    if type(mod) ~= "number" then return true, mod end
-
-    local is_loaded
-
-    local function load_mod()
-
-        if is_loaded then return end
-           is_loaded = true
-
-        ok, mod = pcall(require, mod_name)
-        if not ok then return end
-
-    end
-
-    local t = { __LAZY = true }
-
-    setmetatable(t, {
-
-        __index = function(_, key)
-            load_mod()
-            local val = rawget(mod, key)
-            if val ~= nil then
-                rawset(t, key, val)
-                return val
-            else
-                return mod[key]
-            end
-        end,
-
-        __newindex = function(_, key, val)
-            load_mod()
-            mod[key] = val
-        end,
-
-        __call = function(_, ...)
-            load_mod()
-            return mod(...)
-        end,
-
-        __pairs = function ()
-            load_mod()
-            return pairs(mod)
-        end,
-
-        __ipairs = function ()
-            load_mod()
-            return ipairs(mod)
-        end,
-
-    })
-
-    return true, t, true
-
-end
+local gen_valid_func
 
 local function load_mod (app_name, mod_name, reload_mod)
 
@@ -107,11 +39,16 @@ local function load_mod (app_name, mod_name, reload_mod)
     end
 
     -- 载入模块
-    local ok, mod, is_lazy = lazy_load(mod_name)
+    local ok, mod = pcall(require, mod_name)
 
     if ok and mod then
         -- 生成参数校验函数接口
-        if is_api and not is_lazy then gen_valid_func(mod) end
+        if is_api and type(mod) == "table" then
+            if not gen_valid_func then
+                gen_valid_func = require "app.comm.apix".gen_valid_func
+            end
+            gen_valid_func(mod)
+        end
         return mod, t
 
     elseif t=="$" and n and #n>0 then

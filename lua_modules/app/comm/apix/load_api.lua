@@ -2,11 +2,12 @@
 -- 加载 api 信息
 
 local apix = require "app.comm.apix"
+local split = require "ngx.re".split
 
-local function load_api(api)
+local function load_api(name)
 
     local t = {
-        name    = api,
+        name    = name,
         ver     = "",
         ok      = false,
         err     = "",
@@ -14,15 +15,19 @@ local function load_api(api)
         actions = {},
     }
 
-    local mod = _load("api." .. api)
-    if not mod then
-        t.err = "api不存在"
+    local mod = _load "api"
+    if type(mod) ~= "table" then
+        t.err = "加载失败"
         return t
     end
 
-    if type(mod) ~= "table" then
-        t.err = "不是对象"
-        return t
+    local names = split(name, [[\.]])
+    for _, n in ipairs(names) do
+        mod = mod[n]
+        if type(mod) ~= "table" then
+            t.err = "加载失败"
+            return t
+        end
     end
 
     local ver = mod._VERSION or mod.version or mod.ver or mod._ver
