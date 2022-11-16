@@ -26,72 +26,7 @@
             </div>
         {% else %}
             {-raw-}
-            <div id="app">
-                <div v-if="g.app_name" class="layout">
-                    <div class="layout-header">
-                        <div class="layout-header__logo">
-                            <el-icon :size="16">
-                                <icon-app></icon-app>
-                            </el-icon>
-                            <span style="font-size: 16px; font-weight: bold;" v-cloak>{{ g.app_title }}</span>
-                        </div>
-                        <span style="margin: 0 5px;">当前版本:</span>
-                        <el-tag type="primary" disable-transitions  v-cloak>{{ g.app_ver }}</el-tag>
-                        <div class="layout-header__right">
-                            <el-button text  @click="handleReload">
-                                <template #icon>
-                                    <el-icon>
-                                        <icon-refresh></icon-refresh>
-                                    </el-icon>
-                                </template>
-                                重载模块
-                            </el-button>
-                            <el-button text @click="handleToTestServer">
-                                测试服务器
-                                <icon-jump></icon-jump>
-                            </el-button>
-                            <el-button text @click="handleToGitee">
-                                Gitee仓库
-                                <icon-jump></icon-jump>
-                            </el-button>
-                        </div>
-                    </div>
-
-                    <div class="layout-aside">
-                        <template v-for="item in navs" :key="item.id">
-                            <a class="nav-item"
-                            :class="{ 'is-active': item.id === curr_nav }"
-                            :href="`#${ item.id }`"
-                            @click="curr_nav = item.id"
-                            >
-                                <el-icon>
-                                    <icon-menu-api v-if="item.icon === 'icon-menu-api'"></icon-menu-api>
-                                    <icon-menu-act v-if="item.icon === 'icon-menu-act'"></icon-menu-act>
-                                    <icon-menu-db  v-if="item.icon === 'icon-menu-db'"></icon-menu-db>
-                                </el-icon>
-                                <span>
-                                    {{ item.name }}
-                                </span>
-                            </a>
-                        </template>
-                    </div>
-
-                    <div class="layout-main">
-                        <!-- API 接口管理 -->
-                        <api-manage v-if="curr_nav === 'api-manage'" :g="g"></api-manage>
-                        <!-- ACT 接口管理 -->
-                        <act-manage v-if="curr_nav === 'act-manage'" :g="g"></act-manage>
-                        <!-- 数据库管理 -->
-                        <db-manage v-if="curr_nav === 'db-manage'" :g="g"></db-manage>
-                        <!-- 数据库结构 -->
-                        <db-structure v-if="curr_nav === 'db-structure'" :g="g"></db-structure>
-                    </div>
-                </div>
-
-                <el-dialog v-if="g.visible_reload_dialog" v-model="g.visible_reload_dialog" title="应用重载">
-                    <iframe src="http://127.0.0.1/demo/reload" class="code-iframe-wrap"></iframe>
-                </el-dialog>
-            </div>
+            <div id="app"></div>
             {-raw-}
         {% end %}
 
