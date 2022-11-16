@@ -25,7 +25,7 @@ const template = `
                         :class="{ 'is-active': internalValue$ && internalValue$[props.id] === item[props.id] }"
                         @click="handleItemClick(item)"
                     >
-                        <span>{{ item[props.title]    }}</span>
+                        <span>{{ item[props.title] }}</span>
                         <span v-if="item[props.subTitle]">{{ item[props.subTitle] }}</span>
                     </div>
                 </template>
