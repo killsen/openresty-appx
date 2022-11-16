@@ -46,14 +46,12 @@
                                 </template>
                                 重载模块
                             </el-button>
-                            <el-button text @click="handleToTestServer">
-                                测试服务器
-                                <icon-jump></icon-jump>
-                            </el-button>
-                            <el-button text @click="handleToGitee">
-                                Gitee仓库
-                                <icon-jump></icon-jump>
-                            </el-button>
+                            <template v-for="item in g.help_config.links">
+                                <el-button text @click="handleLinkClick(item)">
+                                    {{ item.text }}
+                                    <icon-jump></icon-jump>
+                                </el-button>
+                            </template>
                         </div>
                     </div>
 
@@ -89,7 +87,7 @@
                 </div>
 
                 <el-dialog v-if="g.visible_reload_dialog" v-model="g.visible_reload_dialog" title="应用重载">
-                    <iframe src="http://127.0.0.1/demo/reload" class="code-iframe-wrap"></iframe>
+                    <iframe src="./reload" class="code-iframe-wrap"></iframe>
                 </el-dialog>
             </div>
             {-raw-}

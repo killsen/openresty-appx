@@ -22,8 +22,9 @@ app.help_html  = [[
 --- 帮助文档配置 ----------------------------------
 app.help_config = {
     template = 'help/index.html', -- help 网页模板所在地址：远程地址、本地地址
-    gitee    = ''               , -- Gitee 工作台地址
-    dev_url  = ''               , -- 测服访问地址
+    links    = {                  -- 顶部右侧链接配置 { { name, url } }
+        { "代码仓库", "https://github.com/killsen/openresty-appx" },
+    },
 }
 
 ---------------------------------------------------
