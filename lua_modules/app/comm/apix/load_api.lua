@@ -1,8 +1,10 @@
 
 -- 加载 api 信息
 
-local apix = require "app.comm.apix"
-local split = require "ngx.re".split
+local apix      = require "app.comm.apix"
+local _split    = require "ngx.re".split
+local _insert   = table.insert
+local _gsub     = string.gsub
 
 local function load_api(name)
 
@@ -21,7 +23,7 @@ local function load_api(name)
         return t
     end
 
-    local names = split(name, [[\.]])
+    local names = _split(name, [[\.]])
     for _, n in ipairs(names) do
         mod = mod[n]
         if type(mod) ~= "table" then
@@ -34,18 +36,17 @@ local function load_api(name)
     if type(ver) ~= "string" then
         t.ver = ""
     else
-        t.ver = "v" .. ver:gsub("v", "")
+        t.ver = "v" .. _gsub(ver, "v", "")
     end
 
-    for k, v in pairs(mod) do
-        if type(k) == "string" and type(v) == "function" then
-            local r = mod[k .. "__"]
-            if type(r) == "table" and type(r[1]) == "string" then
-                k = k .. " " .. r[1]
-            end
+    local keys = apix.gen_api_utils.get_fun_keys(mod)
 
-            table.insert(t.actions, k)
+    for _, k in ipairs(keys) do
+        local r = mod[k .. "__"]
+        if type(r) == "table" and type(r[1]) == "string" then
+            k = k .. " " .. _gsub(r[1], " ", "")
         end
+        _insert(t.actions, k)
     end
 
     local codes = apix.gen_valid_code(mod)

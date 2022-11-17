@@ -6,6 +6,7 @@ local _split    = require "ngx.re".split
 local _insert   = table.insert
 local _concat   = table.concat
 local _sort     = table.sort
+local _sub      = string.sub
 
 local __ = { _VERSION = "v21.09.09" }
 
@@ -47,39 +48,23 @@ __.load_path = function(list, path, name)
 
 end
 
--- 取得最大的 key 长度
-__.get_max_key_len = function(mod)
-
-    local max_len = 0
-
-    if type(mod) ~= "table" then return max_len end
-
-    for key, fun in pairs(mod) do
-        if type(key) == "string" and type(fun) == "function" then
-            if #key > max_len then max_len = #key end
-        end
-    end
-
-    return max_len
-
-end
-
--- 取得最大的 key 长度
+-- 取得 key 列表及最大长度
 __.get_fun_keys = function(mod)
 
-    local keys = {}
+    local keys, max_len = {}, 0
 
-    if type(mod) ~= "table" then return keys end
+    if type(mod) ~= "table" then return keys, max_len end
 
     for key, fun in pairs(mod) do
-        if type(key) == "string" and type(fun) == "function" then
+        if type(key) == "string" and _sub(key, 1, 1) ~= "_" and type(fun) == "function" then
             _insert(keys, key)
+            if #key > max_len then max_len = #key end
         end
     end
 
     _sort(keys)
 
-    return keys
+    return keys, max_len
 
 end
 

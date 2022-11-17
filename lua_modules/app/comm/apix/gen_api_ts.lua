@@ -5,7 +5,6 @@ local apix              = require "app.comm.apix"
 local utils             = apix.gen_api_utils
 local load_path         = utils.load_path
 local get_namex         = utils.get_namex
-local get_max_key_len   = utils.get_max_key_len
 local get_fun_keys      = utils.get_fun_keys
 local sort_pairs        = utils.sort_pairs
 
@@ -529,13 +528,12 @@ end
 -- 生成未定义接口声明的模块（兼容处理）
 local function gen_functions_undefined(mod, func_loaded)
 
-    local max_len = get_max_key_len(mod) + 1
-    local keys    = get_fun_keys(mod)
+    local keys, max_len = get_fun_keys(mod)
 
     for _, key in ipairs(keys) do
         if not func_loaded[key] then
             local keyx = get_namex(key)
-            keyx = keyx .. string.rep(" ", max_len - #keyx)
+            keyx = keyx .. string.rep(" ", max_len + 1 - #keyx)
             ngx.say("    function ", keyx ," (req?: object, opt?: Option): Response <any>;")
         end
     end

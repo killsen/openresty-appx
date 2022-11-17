@@ -5,7 +5,6 @@ local apix              = require "app.comm.apix"
 local utils             = apix.gen_api_utils
 local load_path         = utils.load_path
 local get_namex         = utils.get_namex
-local get_max_key_len   = utils.get_max_key_len
 local get_fun_keys      = utils.get_fun_keys
 
 local _split    = require "ngx.re".split
@@ -91,10 +90,10 @@ return function(app_name, base_path, base_name, args)
             ngx.say ("")
             ngx.say ("$api.", get_namex(name)," = {")
 
-            local max_len = get_max_key_len(mod) + 4
-            if max_len < 12 then max_len = 12 end
+            local keys, max_len = get_fun_keys(mod)
 
-            local keys = get_fun_keys(mod)
+            max_len = max_len + 4
+            if max_len < 12 then max_len = 12 end
 
             for _, key in ipairs(keys) do
                 local keyx = get_namex(key)
