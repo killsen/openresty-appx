@@ -89,7 +89,7 @@ export default {
         ].filter(item => item.show !== false)
 
         // 初始化链接配置、过滤为空的配置
-        const links = (help_config.links || []).filter(item => {
+        const links = (Array.isArray(help_config.links) ? help_config.links : []).filter(item => {
             if (Array.isArray(item) && item[0] && item[1]) return true // 数组配置 [text, link]
             if ('text' in item && 'link' in item         ) return true // 对象配置 { text: '', link: '' }
             return false
@@ -103,9 +103,9 @@ export default {
                 app_name   : G.app_name  || '',
                 app_title  : G.app_title || '',
                 app_ver    : G.app_ver   || '',
-                app_apis   : G.app_apis  || [],
-                app_acts   : G.app_acts  || [],
-                app_daos   : G.app_daos  || [],
+                app_apis   : Array.isArray(G.app_apis) ? G.app_apis : [],
+                app_acts   : Array.isArray(G.app_acts) ? G.app_acts : [],
+                app_daos   : Array.isArray(G.app_daos) ? G.app_daos : [],
                 app_daox   : null,
                 app_intro  : G.help_html || '', // 项目介绍内容
                 help_config: { ...help_config, links },
