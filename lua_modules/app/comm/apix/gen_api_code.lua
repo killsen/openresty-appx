@@ -1,28 +1,8 @@
 
--- 生成参数校验函数代码 v21.08.30
+-- 生成参数校验函数代码
 
 local apix      = require "app.comm.apix"
-local utils     = require "app.comm.utils"
 local _split    = require "ngx.re".split
-local _insert   = table.insert
-
--- 加载 api 目录及其子目录下全部 lua 文件
-local function load_path (list, path, name)
-
-    -- 文件列表
-    local flist = utils.file_list (path)
-        for _, f in ipairs(flist) do
-            _insert(list, name .. f)
-        end
-
-    -- 目录列表
-    local plist = utils.path_list (path)
-        for _, p in ipairs(plist) do
-            load_path(list, path .. p .. "/",
-                            name .. p .. ".")
-        end
-
-end
 
 local function _err(api, codes, err)
 
@@ -40,42 +20,9 @@ local function _err(api, codes, err)
 
 end
 
-return function(app_name, base_path, base_name, args)
-
-    local app = require "app.comm.appx".new(app_name)
-    if not app then return ngx.exit(404) end
-
-    app_name = app.name
-
-    base_path = base_path or ("app/" .. app_name .. "/api/")
-    base_name = base_name or  ""
-
-    args = args or ngx.req.get_uri_args()
-    local api = args.api
-
-    local query = ngx.encode_args(args)
-    if query ~= "" then query = "?" .. query end
-
-    if type(args.base) == "string" and args.base ~= "" then
-        base_path = base_path .. args.base .. "/"
-        base_name = base_name .. args.base .. "."
-    end
-
-    if type(api) == "string" and api ~= "" then
-        ngx.header['content-type'] = "text/plain"
-        ngx.header['language'] = "lua"
-        local t = apix.load_api(base_name .. api)
-        if t.ok then
-            ngx.say(t.codes)
-        else
-            _err(t.name, t.codes, t.err)
-        end
-        return
-    end
-
+local function print_html()
     ngx.header['content-type'] = "text/html"
-
-ngx.say [[
+    ngx.say [[
 <!DOCTYPE html>
 <html lang="zh">
 <head>
@@ -116,6 +63,35 @@ ngx.say [[
 </head>
 <body>
 ]]
+end
+
+return function(app_name, base_name, api_name)
+
+    base_name = base_name or ngx.req.get_uri_args().base or ""
+    api_name  = api_name  or ngx.req.get_uri_args().api  or nil
+
+    local query = base_name ~= "" and ("?base=" .. base_name) or ""
+
+    local api_list, base_list = apix.load_apis(app_name, base_name)
+    if not api_list then return ngx.exit(404) end
+
+    if type(api_name) == "string" then
+        ngx.header['content-type'] = "text/plain"
+        for _, t in ipairs(api_list) do
+            if t.name == api_name then
+                if t.ok then
+                    ngx.header['language'] = "lua"
+                    ngx.say(t.codes)
+                else
+                    _err(t.name, t.codes, t.err)
+                end
+                return
+            end
+        end
+        return ngx.exit(404)
+    end
+
+    print_html()
 
     local url1 = "/" .. app_name .. "/api"      .. query
     local url2 = "/" .. app_name .. "/api.d.ts" .. query
@@ -127,7 +103,6 @@ ngx.say [[
     ngx.say('   <a style="margin-left: 20px;" target="_blank" href="', url3,'"', ">api.js</a>")
     ngx.say("</h2>")
 
-    local base_list = utils.path_list("app/" .. app_name .. "/api")
     if #base_list > 0 then
         ngx.say("<h3>")
         local url = "/" .. app_name .. "/api"
@@ -153,20 +128,14 @@ ngx.say [[
     ngx.say("   <th>错误信息</th>")
     ngx.say("</tr>")
 
-    local list = {}
-
-    load_path (list, base_path, "")
-    table.sort(list)
-
-    for i, name in ipairs(list) do
-        local t = apix.load_api(base_name .. name)
+    for i, t in ipairs(api_list) do
 
         ngx.say("<tr>")
         ngx.say("   <th>", i , "</th>")
-        ngx.say("   <th>", "$api." .. name, "</th>")
+        ngx.say("   <th>", "$api" .. (t.name ~= "" and "." or "") .. t.name, "</th>")
 
         ngx.say("   <td>")
-        table.sort(t.actions)
+
         for _, act in ipairs(t.actions) do
             ngx.say("       <li>", act, "</li>")
         end
@@ -174,7 +143,7 @@ ngx.say [[
 
         ngx.say("   <td>", t.ver, "</td>")
 
-        local arg_api_name = (query == "" and "?" or "&") .. "api=" .. name
+        local arg_api_name = (query == "" and "?" or "&") .. "api=" .. t.name
 
         if t.codes ~= "" then
             ngx.say("   <td><a ", 'target="_blank" href="', url1, arg_api_name ,'"', ">验参代码</a></td>")
@@ -189,11 +158,8 @@ ngx.say [[
         ngx.say("</tr>")
     end
 
-    ngx.say("</table>")
-
-    ngx.say [[
-</body>
-</html>
-]]
+    ngx.say ("</table>")
+    ngx.say ("</body>")
+    ngx.say ("</html>")
 
 end

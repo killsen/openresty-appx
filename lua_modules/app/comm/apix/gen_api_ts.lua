@@ -1,13 +1,8 @@
 
--- 生成 api.d.ts v21.09.09
+-- 生成 api.d.ts
 
 local apix              = require "app.comm.apix"
 local utils             = apix.gen_api_utils
-local load_path         = utils.load_path
-local get_namex         = utils.get_namex
-local get_fun_keys      = utils.get_fun_keys
-local sort_pairs        = utils.sort_pairs
-
 local _width            = require "utf8".width
 local _split            = require "ngx.re".split
 local _insert           = table.insert
@@ -28,7 +23,7 @@ local function gen_namespace(name, namespace_loaded)
         if i<#names and not namespace_loaded[pname] then
             namespace_loaded[pname] = true
             ngx.say ("")
-            ngx.say("declare namespace ", get_namex(pname), " {}")
+            ngx.say("declare namespace ", utils.get_namex(pname), " {}")
         end
     end
 
@@ -126,7 +121,7 @@ local function load_args(t)
     --       items = "$pos_bi_item[] //订单明细",
     -- }
 
-    for k, v in sort_pairs(t) do
+    for k, v in utils.sort_pairs(t) do
 
         local p
 
@@ -378,7 +373,10 @@ local function gen_dao(name, type_loaded)
 end
 
 -- 生成模块中出现的全部 dao 接口
-local function load_daos(mod, daos)
+local function load_daos(mod, daos, level)
+
+    level = tonumber(level) or 0
+    if level > 10 then return end
 
     if type(daos) ~= "table" then return end
 
@@ -392,7 +390,7 @@ local function load_daos(mod, daos)
 
     elseif type(mod) == "table" then
         for _, v in pairs(mod) do
-            load_daos(v, daos)
+            load_daos(v, daos, level+1)
         end
     end
 
@@ -440,7 +438,7 @@ local function gen_types(types, type_loaded)
 
     if type(types) ~= "table" then return end
 
-    for name, t in sort_pairs(types) do
+    for name, t in utils.sort_pairs(types) do
         gen_type(name, t, type_loaded)
     end
 
@@ -485,7 +483,7 @@ local function gen_function(name, dt)
     ngx.say ("")
     ngx.say (space4, "/** ", desc ," */")
 
-    ngx.print (space4, "function ",  get_namex(name), " (")
+    ngx.print (space4, "function ",  utils.get_namex(name), " (")
 
     if type(dt.req) == "string" then
         local reqType = _gsub(dt.req, [[@]], "")  -- 清除 @ 符号 v22.04.05
@@ -524,71 +522,28 @@ local function gen_function(name, dt)
 
 end
 
+return function(app_name, base_name, api_name)
 
--- 生成未定义接口声明的模块（兼容处理）
-local function gen_functions_undefined(mod, func_loaded)
+    base_name = base_name or ngx.req.get_uri_args().base or ""
+    api_name  = api_name  or ngx.req.get_uri_args().api  or nil
 
-    local keys, max_len = get_fun_keys(mod)
+    local api_list, _, api_base = apix.load_apis(app_name, base_name)
+    if not api_list then return ngx.exit(404) end
 
-    for _, key in ipairs(keys) do
-        if not func_loaded[key] then
-            local keyx = get_namex(key)
-            keyx = keyx .. string.rep(" ", max_len + 1 - #keyx)
-            ngx.say("    function ", keyx ," (req?: object, opt?: Option): Response <any>;")
+    if api_name then
+        for _, t in ipairs(api_list) do
+            if t.name == api_name then
+                api_list = { t }
+                break
+            end
         end
     end
-
-end
-
--- 生成只有一个函数的命名空间
-local function gen_function_only(name, func)
-
-    ngx.say ("")
-    ngx.say ("declare namespace ", get_namex(name) ," {")
-    ngx.say("    function ", func ," (req?: object, opt?: Option): Response <any>;")
-    ngx.say ("}")
-
-end
-
-return function(app_name, base_path, base_name, args)
-
-    local app = require "app.comm.appx".new(app_name)
-    if not app then return ngx.exit(404) end
-
-    app_name = app.name
-
-    base_path = base_path or ("app/" .. app_name .. "/api/")
-    base_name = base_name or  "api."
 
     ngx.header['content-type'] = "application/javascript"
     ngx.header['language'] = "typescript"
 
-    local list = {}
     local namespace_loaded = {}  -- 已加载的命名空间
     local dao_loaded       = {}  -- 已加载的dao接口
-
-    args = args or ngx.req.get_uri_args()
-
-    if type(args.base) == "string" and args.base ~= "" then
-        base_path = base_path .. args.base .. "/"
-        base_name = base_name .. args.base .. "."
-    end
-
-    if type(args.api) == "string" and args.api ~= "" then
-        _insert(list, args.api)
-    else
-        load_path (list, base_path, "")
-
-        -- 不输出 demo 演示接口
-        for i, name in ipairs(list) do
-            if name == "demo" then
-                table.remove(list, i)
-                break
-            end
-        end
-
-        table.sort(list)
-    end
 
     ngx.say ("")
     ngx.say ("declare namespace $api {")
@@ -616,39 +571,18 @@ return function(app_name, base_path, base_name, args)
 
     -- 生成模块中出现的全部 dao 接口
     local daos = {}
-    for _, name in ipairs(list) do
-        local mod = _load (base_name .. name)
-        load_daos(mod, daos)
-    end
-    for name in sort_pairs(daos) do
+    load_daos(api_base, daos)
+    for name in utils.sort_pairs(daos) do
         gen_dao(name, dao_loaded)
     end
 
     ngx.say ("")
     ngx.say ("}")
 
-    for _, name in ipairs(list) do
+    for _, api in ipairs(api_list) do
 
-        local mod = _load (base_name .. name)
-
-        -- 函数类接口
-        if type(mod) == "function" then
-
-            local t = _split(name, [[\.]])
-
-            if #t > 1 then
-                local n1 = table.concat(t, ".", 1, #t-1)
-                local n2 = t[#t]
-
-                namespace_loaded["$api." .. n1] = true
-                gen_namespace(n1, namespace_loaded)
-
-                gen_function_only("$api."..n1, n2)
-            else
-                gen_function_only("$api", name)
-            end
-
-        end
+        local name = api.name
+        local mod = utils.load_api_mod(api_base, name)
 
         -- 对象类接口
         if type(mod) == "table" then
@@ -659,10 +593,9 @@ return function(app_name, base_path, base_name, args)
             local ver = mod._VERSION and ("  // " .. mod._VERSION) or ""
 
             ngx.say ("")
-            ngx.say ("declare namespace $api.", get_namex(name) ," {",  ver)
+            ngx.say ("declare namespace $api.", utils.get_namex(name) ," {",  ver)
 
             local type_loaded = {}      -- 已加载的接口声明
-            local func_loaded = {}      -- 已加载的函数声明
             local __defined__ = false   -- 是否已定义接口声明
 
             -- 生成模块中出现的全部 dao 接口
@@ -671,7 +604,7 @@ return function(app_name, base_path, base_name, args)
             -- 自定义类型【模块级】
             gen_types(mod.types, type_loaded)
 
-            for k, t in sort_pairs(mod) do
+            for k, t in utils.sort_pairs(mod) do
 
                 local s = _sub(k, -2)
                 if s == "__" and type(t) == "table" then
@@ -682,7 +615,6 @@ return function(app_name, base_path, base_name, args)
                     local act = _sub(k, 1, -3)
                     if type(mod[act]) == "function" then
                         __defined__ = true
-                        func_loaded[act] = true
                         gen_function(act, t)  -- 生成函数声明
                     end
                 end
@@ -690,9 +622,6 @@ return function(app_name, base_path, base_name, args)
             end
 
             if __defined__ then ngx.say ("") end
-
-            -- 生成未定义接口声明的模块（兼容处理）
-            gen_functions_undefined(mod, func_loaded)
 
             ngx.say ("}")
         end

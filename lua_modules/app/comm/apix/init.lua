@@ -53,6 +53,8 @@ __.new = function(t, path)
     return setmetatable(t, {
 
         __index = function(self, key)
+            if type(key) ~= "string" then return end
+
             local apipath  = path .. "/" .. key
             local filename = apipath .. ".lua"
             local exists   = path_exists(apipath)

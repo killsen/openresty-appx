@@ -2,11 +2,10 @@
 -- 加载 api 信息
 
 local apix      = require "app.comm.apix"
-local _split    = require "ngx.re".split
 local _insert   = table.insert
 local _gsub     = string.gsub
 
-local function load_api(name)
+local function load_api(mod, name)
 
     local t = {
         name    = name,
@@ -17,19 +16,9 @@ local function load_api(name)
         actions = {},
     }
 
-    local mod = _load "api"
     if type(mod) ~= "table" then
         t.err = "加载失败"
         return t
-    end
-
-    local names = _split(name, [[\.]])
-    for _, n in ipairs(names) do
-        mod = mod[n]
-        if type(mod) ~= "table" then
-            t.err = "加载失败"
-            return t
-        end
     end
 
     local ver = mod._VERSION or mod.version or mod.ver or mod._ver

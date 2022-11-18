@@ -68,6 +68,26 @@ __.get_fun_keys = function(mod)
 
 end
 
+-- 取得 key 列表及最大长度
+__.get_tbl_keys = function(mod)
+
+    local keys, max_len = {}, 0
+
+    if type(mod) ~= "table" then return keys, max_len end
+
+    for key, tbl in pairs(mod) do
+        if type(key) == "string" and _sub(key, 1, 1) ~= "_" and type(tbl) == "table" then
+            _insert(keys, key)
+            if #key > max_len then max_len = #key end
+        end
+    end
+
+    _sort(keys)
+
+    return keys, max_len
+
+end
+
 -- 排序迭代器
 __.sort_pairs = function(t)
 
@@ -96,6 +116,26 @@ __.sort_pairs = function(t)
         local k = keys[index]
         return k, t[k]
     end
+
+end
+
+__.load_api_mod = function(api_root, api_name)
+
+    if type(api_root) ~= "table" then return end
+    if type(api_name) ~= "string" or api_name == "" then return api_root end
+
+    local mod   = api_root
+    local names = _split(api_name, [[\.]])
+
+    for _, name in ipairs(names) do
+        if name ~= "" then
+            mod = mod[name]
+            if type(mod) ~= "table" then break end
+        end
+    end
+
+    if type(mod) ~= "table" then return end
+    return mod
 
 end
 
