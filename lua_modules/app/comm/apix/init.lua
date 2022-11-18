@@ -9,7 +9,10 @@ local getinfo       = debug.getinfo
 local gsub          = string.gsub
 local sub           = string.sub
 local lower         = string.lower
-local open          = io.open
+
+local lfs           = require "lfs"
+local lfs_attr      = lfs.lfs_attributes    -- 使用绝对路径
+if not lfs_attr then lfs_attr = lfs.attributes end
 
 local __ = { __VERSION = "v1.0.0" }
 
@@ -17,12 +20,8 @@ local MOD_LOADED = {}
 
 -- 检查目录是否存在
 local function path_exists(path)
-    local file, err = open(path)
-    if file then file:close() end
-    if err and sub(err, -6) == "denied" then
-        -- 如果目录存在错误信息以 Permission denied 结尾
-        return true
-    end
+    local attr = lfs_attr(path)
+    return attr and attr.mode == "directory"
 end
 
 -- API模块构造器
