@@ -8,10 +8,8 @@ local _sort         = table.sort
 local _sub          = string.sub
 
 local lfs           = require "lfs"
-local lfs_attr      = lfs.lfs_attributes    -- 使用绝对路径
-local lfs_dir       = lfs.lfs_dir           -- 使用绝对路径
-if not lfs_attr then lfs_attr = lfs.attributes end
-if not lfs_dir  then lfs_dir  = lfs.dir        end
+local lfs_attr      = lfs.attributes
+local lfs_dir       = lfs.dir
 
 local MAX_LEVEL     = 5
 

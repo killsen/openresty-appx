@@ -11,8 +11,7 @@ local sub           = string.sub
 local lower         = string.lower
 
 local lfs           = require "lfs"
-local lfs_attr      = lfs.lfs_attributes    -- 使用绝对路径
-if not lfs_attr then lfs_attr = lfs.attributes end
+local lfs_attr      = lfs.attributes
 
 local __ = { __VERSION = "v1.0.0" }
 
