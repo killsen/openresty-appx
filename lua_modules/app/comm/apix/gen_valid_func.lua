@@ -1,25 +1,23 @@
 
--- 生成参数校验函数接口 v20.10.22
+-- 生成参数校验函数接口 v22.11.19
 
-local type           = type
-local pcall          = pcall
-local loadstring     = loadstring
-local mod_loaded     = setmetatable({}, {_mode = "k"})  -- 弱表
+local type          = type
+local pcall         = pcall
+local loadstring    = loadstring
+
+local MOD_LOADED    = setmetatable({}, { __mode = "k" })  -- 弱表
 
 -- 为接口添加参数验证
 local function gen_act(act_fun, valid_fun)
-    return function(req)
+    return function(req, ...)
 
-        if type(req) ~= "table" then
-            req = {}
-            -- return nil, "参数不能为空"
-        end
+        if type(req) ~= "table" then req = {} end
 
         local  pok, rok, err = pcall(valid_fun, req)
         if not pok then return nil, rok end
         if not rok then return nil, err end
 
-        local  ok, r1, r2, r3 = pcall(act_fun, req)
+        local  ok, r1, r2, r3 = pcall(act_fun, req, ...)
         if not ok then return nil, r1 end
 
         return r1, r2, r3
@@ -33,8 +31,8 @@ return function (mod)
 
     if type(mod) ~= "table" then return end
 
-    if mod_loaded[mod] then return end
-       mod_loaded[mod] = true
+    if MOD_LOADED[mod] then return end
+       MOD_LOADED[mod] = true
 
     if not gen_valid_code then
         gen_valid_code = require "app.comm.apix".gen_valid_code
