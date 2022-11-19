@@ -11,7 +11,6 @@
         @reconstruction="handleReconstruction"
         @view="handleView"
         @info="handleInfo"
-        @del="handleDel"
     >
         <template #header-left>
             <span class="container-header__title">
@@ -26,10 +25,10 @@
         </template>
 
         <template #field_list="{ cellValue }">
-            <ul v-if="cellValue.length" class="ul-list">
+            <ul v-if="cellValue.length" style="padding-left: 15px;">
                 <li v-for="(item, idx) in cellValue" class="ul-list-item" :key="item">
-                    <span class="ul-list-item__title">{{ item.name }} :</span>
-                    <span class="ul-list-item__desc">{{ item.desc }}</span>
+                    <span>{{ item.name }} :</span>
+                    <span>{{ item.desc }}</span>
                 </li>
             </ul>
         </template>
@@ -79,12 +78,11 @@ export default {
             cols: [
                 { id: 'table_name', name: '表名', align: 'left', showBackground: true, searchable: true },
                 { id: 'table_desc', name: '说明', align: 'left', searchable: true },
-                { id: 'field_list', name: '主键' },
+                { id: 'field_list', name: '主键', align: 'left' },
             ],
             actions: [
-                { id: 'reconstruction', name: '重建表' },
-                { id: 'del'           , name: '删除表' },
-                { id: 'view'          , name: '表结构' },
+                { id: 'reconstruction', name: '重建表'   },
+                { id: 'view'          , name: '表结构'   },
             ],
             iframeDialog: {
                 visible: false,

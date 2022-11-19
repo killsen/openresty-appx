@@ -11,7 +11,7 @@ const template = `
         :rows="rows$"
         :actions="actions"
         :actionsWidth="actionsWidth"
-        @detail="handleShowDialog"
+        @action-click="handleShowDialog"
     >
         <template #header-left>
             <div class="container-header__left">
@@ -33,13 +33,17 @@ const template = `
             </el-button>
         </template>
 
-        <template #actions="{ cellValue }">
-            <ul v-if="cellValue.length" class="ul-list">
-                <li v-for="(item, idx) in cellValue" class="ul-list-item" :key="item">
-                    <span class="ul-list-item__title">{{ item.name }} :</span>
-                    <span class="ul-list-item__desc">{{ item.desc }}</span>
-                </li>
-            </ul>
+        <template #name="{ row }">
+            <div class="api-wrap">
+                <div class="api-wrap__name">{{ row.name }}</div>
+                <div v-if="row.actions.length" class="api-wrap__line"></div>
+                <ul v-if="row.actions.length" class="api-wrap-actions">
+                    <li v-for="(item, idx) in row.actions" :key="item">
+                        <span class="api-wrap-actions__item-name">{{ item.name }} :</span>
+                        <span class="api-wrap-actions__item-desc">{{ item.desc }}</span>
+                    </li>
+                </ul>
+            </div>
         </template>
     </app-table>
 
@@ -100,15 +104,16 @@ export default {
                 { id: 'err' , name: '接口错误', align: 'left' },
             ],
             cols: [
-                { id: 'name'    , name: '接口名称', align: 'left', showBackground: true, searchable: true },
-                { id: 'actions' , name: '接口操作'                 },
+                { id: 'name'    , name: '接口名称', align: 'left' },
                 { id: 'ver'     , name: '接口版本', width: '120px' },
-                { id: 'err'     , name: '接口错误', width: '120px' },
+                { id: 'err'     , name: '接口错误' },
             ],
             actions: [
-                { id: 'detail', name: '查看详情' },
+                { id: 'lua', name: '验参代码' },
+                { id: 'ts' , name: 'api.d.ts' },
+                { id: 'js' , name: 'api.js' },
             ],
-            actionsWidth: '120px',
+            actionsWidth: '240px',
             api_groups: [],
             curr_api_group: 'all',
         }
@@ -136,7 +141,9 @@ export default {
             if (curr_api_group === 'all') {
                 return this.list$
             } else {
-                return this.list$.filter(item => item.name.startsWith(curr_api_group))
+                return this.list$.filter(item => item.name.startsWith(curr_api_group)).map(item => {
+                    return { ...item, name: item.name.slice(curr_api_group.length + 1) }
+                })
             }
         },
     },
@@ -161,12 +168,11 @@ export default {
         },
 
         // 查看 api 验证参数
-        handleShowDialog({ row }) {
+        handleShowDialog({ row, item }) {
             const dialog    = this.iframeDialog
-            dialog.curr_tab = row ? 'lua' : 'ts'
+            dialog.curr_tab = item ? item.id : 'ts'
             dialog.curr_row = row
             this.handleTabChange(dialog.curr_tab)
-
             dialog.visible  = true
         },
 
