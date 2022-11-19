@@ -74,13 +74,20 @@ __.do_debug_file = function(file_name, codes)
 
     if not func then return end
 
-    local  pok, res = pcall(func)
-    if not pok then return ngx.say(res) end
+    local apix = require "app.comm.apix"
+    apix.gen_valid_func(mod)
 
-    if type(res) == "table" then
+    local pok, res = pcall(func)
+
+    if not pok then
+        ngx.header["content-type"] = "text/plain"
+        ngx.print(tostring(res))
+
+    elseif type(res) == "table" then
         ngx.header["content-type"] = "text/json"
         local encode = require "resty.prettycjson"
         ngx.print(encode(res))
+
     elseif res ~= nil then
         ngx.header["content-type"] = "text/plain"
         ngx.say(tostring(res))
