@@ -1,6 +1,6 @@
 /**
  * ACT 接口管理
- * v22.11.13
+ * v22.11.19
  */
 import $utils from '../utils/index.js'
 
@@ -39,8 +39,8 @@ const template = `
                 <div v-if="row.actions.length" class="api-wrap__line"></div>
                 <ul v-if="row.actions.length" class="api-wrap-actions">
                     <li v-for="(item, idx) in row.actions" :key="item">
-                        <span class="api-wrap-actions__item-name">{{ item.name }} :</span>
-                        <span class="api-wrap-actions__item-desc">{{ item.desc }}</span>
+                        <span class="api-wrap-actions__item-name">{{ item.name }} </span>
+                        <span class="api-wrap-actions__item-desc" v-if="item.desc"> -- {{ item.desc }}</span>
                     </li>
                 </ul>
             </div>
@@ -104,16 +104,16 @@ export default {
                 { id: 'err' , name: '接口错误', align: 'left' },
             ],
             cols: [
-                { id: 'name'    , name: '接口名称', align: 'left' },
-                { id: 'ver'     , name: '接口版本', width: '120px' },
-                { id: 'err'     , name: '接口错误' },
+                { id: 'name'    , name: '接口名称', align: 'left', searchable: true },
+                { id: 'ver'     , name: '接口版本', width: '100px' },
+                { id: 'err'     , name: '接口错误', width: '120px' },
             ],
             actions: [
                 { id: 'lua', name: '验参代码' },
                 { id: 'ts' , name: 'api.d.ts' },
                 { id: 'js' , name: 'api.js' },
             ],
-            actionsWidth: '240px',
+            actionsWidth: '200px',
             api_groups: [],
             curr_api_group: 'all',
         }
@@ -141,9 +141,7 @@ export default {
             if (curr_api_group === 'all') {
                 return this.list$
             } else {
-                return this.list$.filter(item => item.name.startsWith(curr_api_group)).map(item => {
-                    return { ...item, name: item.name.slice(curr_api_group.length + 1) }
-                })
+                return this.list$.filter(item => item.name === curr_api_group || item.name.startsWith(`${ curr_api_group }.`))
             }
         },
     },
