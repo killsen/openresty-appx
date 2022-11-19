@@ -3,12 +3,13 @@
 
 local apix          = require "app.comm.apix"
 local utils         = apix.gen_api_utils
-local lfs           = require "lfs"
-local _dir          = lfs.lfs_dir           -- 使用绝对路径
-local _attr         = lfs.lfs_attributes    -- 使用绝对路径
 local _insert       = table.insert
 local _sort         = table.sort
 local _sub          = string.sub
+
+local lfs           = require "lfs"
+local lfs_attr      = lfs.attributes
+local lfs_dir       = lfs.dir
 
 local MAX_LEVEL     = 5
 
@@ -17,10 +18,13 @@ local function file_list(path)
 
     local list, index = {}, 0
 
-    for f in _dir(path) do
+    local attr = lfs_attr(path)
+    if not attr or attr.mode ~= "directory" then return list end
+
+    for f in lfs_dir(path) do
         if f ~= "." and f ~= '..' then
             local p = path .. "/" .. f
-            if _attr(p).mode == "file" and _sub(f, -4) == ".lua" then
+            if lfs_attr(p).mode == "file" and _sub(f, -4) == ".lua" then
                 index = index + 1
                 list[index] = _sub(f, 1, -5)
             end
@@ -36,10 +40,13 @@ local function path_list(path)
 
     local list, index = {}, 0
 
-    for f in _dir(path) do
+    local attr = lfs_attr(path)
+    if not attr or attr.mode ~= "directory" then return list end
+
+    for f in lfs_dir(path) do
         if f ~= "." and f ~= '..' then
             local p = path .. "/" .. f
-            if _attr(p).mode == "directory" then
+            if lfs_attr(p).mode == "directory" then
                 index = index + 1
                 list[index] = f
             end
