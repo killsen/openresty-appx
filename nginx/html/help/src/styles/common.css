@@ -62,9 +62,51 @@ html, body {
     box-sizing: border-box;
     background-color: #f5f7fa;
 }
+/* --- api 接口展示 ------------------------------------------------- */
+.api-wrap {
+    display: flex;
+    align-items: center;
+}
+.api-wrap__name {
+    position: relative;
+    height: 100%;
+    padding-right: 5px;
+    font-weight: bold;
+}
+.api-wrap__line {
+    height: 3px;
+    width: 20px;
+    background-color: var(--el-border-color);
+}
+
+.api-wrap-actions {
+    flex: 1;
+    position: relative;
+    border-left: 3px solid var(--el-border-color);
+    padding-left: 35px;
+}
+
+.api-wrap-actions::before,
+.api-wrap-actions::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    height: 3px;
+    width: 10px;
+    background-color: var(--el-border-color);
+}
+.api-wrap-actions::before { top: 0; }
+.api-wrap-actions::after { bottom: 0; }
+.api-wrap-actions__item-name {
+    color: #7f00ff;
+    margin-right: 5px;
+}
+.api-wrap-actions__item-desc {
+    color: #32cD32;
+}
 
 /* --- ui 列表展示 ------------------------------------------------- */
-.ul-list-item {
+/* .ul-list-item {
     display: flex;
     align-items: center;
     padding-bottom: 5px;
@@ -92,7 +134,7 @@ html, body {
 .ul-list .ul-list-item:last-child {
     border-bottom: none;
     padding-bottom: 0;
-}
+} */
 
 
 /* --- element-plus 样式重置 ------------------------------------------------- */
