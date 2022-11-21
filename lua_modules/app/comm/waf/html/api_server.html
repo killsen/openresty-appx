@@ -1,0 +1,149 @@
+<html>
+<head>
+    <title>服务器管理</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0">
+    <style type="text/css">
+        body {
+            width: 60em;
+            margin: 0 auto;
+            font-family: Tahoma, Verdana, Arial, sans-serif;
+        }
+        table {
+            font-family: verdana,arial,sans-serif;
+            font-size:11px;
+            color:#333333;
+            border-width: 1px;
+            border-color: #666666;
+            border-collapse: collapse;
+        }
+        table th {
+            border-width: 1px;
+            padding: 8px;
+            border-style: solid;
+            border-color: #666666;
+            background-color: #dedede;
+            text-align:left;
+        }
+        table td {
+            border-width: 1px;
+            padding: 8px;
+            border-style: solid;
+            border-color: #666666;
+            background-color: #ffffff;
+            text-align:left;
+        }
+        table tr:hover td {
+            background: #DEDEDE;
+        }
+    </style>
+</head>
+<body>
+
+    <h1 style="margin-top:20px;">服务器管理</h1>
+
+    <h2>上游服务器</h2>
+    <table>
+        <tr>
+            <th style="width:  50px;">  #     </th>
+            <th style="width: 120px;">  ip    </th>
+            <th style="width: 120px;"> port   </th>
+            <th style="width: 120px;"> weight </th>
+            <th style="width:  50px;"> down   </th>
+            <th style="width: 150px;"> 操作   </th>
+        </tr>
+        {% for i, s in ipairs(servers) do %}
+            <tr>
+                <th> {{ i             }} </th>
+                <td> {{ s.ip     }} </td>
+                <td> {{ s.port   }} </td>
+                <td>
+                    {{ s.weight }}
+
+                    <a href="/waf/server/set?ip={{s.ip}}&port={{s.port}}&weight={{s.weight - 1}}">
+                        <button> - </button></a>
+
+                    <a href="/waf/server/set?ip={{s.ip}}&port={{s.port}}&weight={{s.weight + 1}}">
+                        <button> + </button></a>
+
+                </td>
+                <td> {{ s.down == 1 and "X" or "" }} </td>
+                <td>
+                    <a href="/waf/server/del?ip={{s.ip}}&port={{s.port}}">
+                        <button>删除</button></a>
+
+                    <a href="/waf/server/set?ip={{s.ip}}&port={{s.port}}&down=0">
+                        <button>上线</button></a>
+
+                    <a href="/waf/server/set?ip={{s.ip}}&port={{s.port}}&down=1">
+                        <button>下线</button></a>
+
+                </td>
+            </tr>
+        {% end %}
+            <tr>
+              <form action="/waf/server/add">
+                <input type="hidden" name="backup" value="0" />
+                <th> + </th>
+                <td><input type="text" name="ip"        /></td>
+                <td><input type="text" name="port"      /></td>
+                <td><input type="text" name="weight"    /></td>
+                <td> </td>
+                <td><input type="submit" value="添加"     ></td>
+              </form>
+            </tr>
+    <table>
+
+    <h2>备用服务器</h2>
+    <table>
+        <tr>
+            <th style="width:  50px;">  #     </th>
+            <th style="width: 120px;">  ip    </th>
+            <th style="width: 120px;"> port   </th>
+            <th style="width: 120px;"> weight </th>
+            <th style="width:  50px;"> down   </th>
+            <th style="width: 150px;"> 操作   </th>
+        </tr>
+        {% for i, s in ipairs(serverx) do %}
+            <tr>
+                <th> {{ i       }} </th>
+                <td> {{ s.ip    }} </td>
+                <td> {{ s.port  }} </td>
+                <td>
+                    {{ s.weight }}
+
+                    <a href="/waf/server/set?ip={{s.ip}}&port={{s.port}}&weight={{s.weight - 1}}">
+                        <button> - </button></a>
+
+                    <a href="/waf/server/set?ip={{s.ip}}&port={{s.port}}&weight={{s.weight + 1}}">
+                        <button> + </button></a>
+
+                </td>
+                <td> {{ s.down == 1 and "X" or "" }} </td>
+                <td>
+                    <a href="/waf/server/del?ip={{s.ip}}&port={{s.port}}">
+                        <button>删除</button></a>
+
+                    <a href="/waf/server/set?ip={{s.ip}}&port={{s.port}}&down=0">
+                        <button>上线</button></a>
+
+                    <a href="/waf/server/set?ip={{s.ip}}&port={{s.port}}&down=1">
+                        <button>下线</button></a>
+                </td>
+            </tr>
+        {% end %}
+            <tr>
+              <form action="/waf/server/add">
+                <input type="hidden" name="backup" value="1" />
+                <th> + </th>
+                <td><input type="text" name="ip"        /></td>
+                <td><input type="text" name="port"      /></td>
+                <td><input type="text" name="weight"    /></td>
+                <td> </td>
+                <td><input type="submit" value="添加"     ></td>
+              </form>
+            </tr>
+    <table>
+
+</body>
+</html>

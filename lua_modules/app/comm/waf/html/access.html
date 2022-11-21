@@ -1,0 +1,106 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>{{ my_title }}</title>
+    <link rel="stylesheet" href="css/element-ui.css">
+    <script src="js/vue.js"></script>
+    <script src="js/element-ui.js"></script>
+    <style type="text/css">
+        .el-table__header tr,
+        .el-table__header th {
+            padding: 0;
+            height: 35px;
+        }
+        .el-table__body tr,
+        .el-table__body td {
+            padding: 0;
+            height: 35px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+<div id="app" style="margin: 1em; padding: 0;">
+<template>
+
+    <div style="margin-bottom: 1em;">
+        <span style="margin-right: 1em;"><b>{{ my_title }}</b></span>
+
+        <el-button type="primary" size="small" v-if="!g.is_started" @click="start_ws">启动监控</el-button>
+        <el-button type="warning" size="small" v-if=" g.is_started" @click="close_ws">停止监控</el-button>
+        <el-button type="info"    size="small" :disabled="!g.is_started" v-if="!g.is_paused" @click="_pause" >暂停</el-button>
+        <el-button type="info"    size="small" :disabled="!g.is_started" v-if=" g.is_paused" @click="_resume">继续</el-button>
+
+        <el-input style="width: 400px; margin-left: 1em;" size="small" placeholder="请输入请求内容过滤"
+            v-model="g.request_input" @change="_filterData" prefix-icon="el-icon-search" >
+            <el-button slot="append"  icon="el-icon-close"  @click="_filterClear"></el-button>
+        </el-input>
+
+        <template v-for="ip,i in g.ip_list">
+            <el-tag style="margin-left: 10px;"
+                closable @close="add_ip(ip)">
+                ip = {{ ip }}
+            </el-tag>
+        </template>
+
+    </div>
+
+    <el-table :data="g.my_data" stripe style="width: 100%" height="600">
+        <el-table-column prop="id" label="#" width="80"></el-table-column>
+
+        <el-table-column prop="server_name" label="服务器" width="130" align="left"></el-table-column>
+
+        <el-table-column prop="ip" label="IP地址" width="120">
+            <template slot-scope="scope">
+
+                <span @click="add_ip(scope.row.ip)" style="margin-right: 5px;">{{ scope.row.ip }}</span>
+
+                <a target="_blank"
+                   :href="'http://m.ip138.com/ip.asp?ip=' + scope.row.ip">
+                   <i class="el-icon-position"></i>
+               </a>
+
+            </template>
+        </el-table-column>
+
+        <el-table-column prop="connection" label="TCP (#请求数)" width="150" align="left">
+            <template slot-scope="scope">
+                {{ scope.row.connection }} ( #{{ scope.row.connection_requests }} )
+            </template>
+        </el-table-column>
+
+        <el-table-column prop="time_local"          label="服务器时间"  width="220"></el-table-column>
+
+        <el-table-column prop="status"              label="状态"        width="80" align="center">
+            <template slot-scope="scope">
+                <el-tag size="mini" :effect="scope.row.status<400 && 'light' || 'dark'">
+                    {{ scope.row.status }}
+                </el-tag>
+            </template>
+        </el-table-column>
+
+        <el-table-column prop="request"             label="请求内容"    min-width="250"></el-table-column>
+        <el-table-column prop="request_length"      label="请求长度"    width="80" align="right"></el-table-column>
+        <el-table-column prop="body_bytes_sent"     label="返回长度"    width="80" align="right"></el-table-column>
+        <el-table-column prop="request_time"        label="请求耗时"    width="80" align="right"></el-table-column>
+
+    <!--<el-table-column prop="http_referer"        label="来源"   ></el-table-column>-->
+    <!--<el-table-column prop="http_user_agent"     label="浏览器" ></el-table-column>-->
+    </el-table>
+
+</template>
+</div> <!-- app -->
+</body>
+</html>
+
+<script>
+
+    var my_head = "{{ my_head }}".split("\t");
+    var server_ip = "{{ server_ip }}";
+    var server_port = {{ server_port }};
+
+</script>
+
+<script src="js/access.js?{{ app_ver }}"></script>

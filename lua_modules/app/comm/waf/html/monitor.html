@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>服务器实时监控</title>
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/element-ui.css">
+    <script src="js/vue.js"></script>
+    <script src="js/element-ui.js"></script>
+    <script src="js/highcharts.js"></script>
+</head>
+<body>
+<div id="app">
+<template>
+
+    <div style="margin: 1em; float:left; width:500px;">
+        <div style="float:left; height:200px; width:100%;">
+            <div id="chart-conn" style="float:left; height: 100%; width: 100%;"></div>
+        </div>
+
+        <div style="float:left; height:200px; width:100%;">
+            <div id="chart-traf" style="float:left; height: 100%; width: 100%;"></div>
+        </div>
+
+        <div style="float:left; height:200px; width:100%;">
+            <div id="chart-qps" style="float:left; height: 100%; width: 100%;"></div>
+        </div>
+    </div>
+
+    <div style="margin-left: 1em; float:left;">
+
+        <h2>服务器实时监控 </h2>
+
+        <p>运行时间： <span>{{ g.server_time }}</span></p>
+        <p>在线连接： <span>{{ g.connections }}</span></p>
+
+        <table>
+            <tr>
+                <th>主机</th>
+                <th>停用</th>
+                <th>请求数</th>
+                <th>成功率</th>
+                <th>1xx</th>
+                <th>2xx</th>
+                <th>3xx</th>
+                <th>4xx</th>
+                <th>5xx</th>
+                <th>上传流量</th>
+                <th>下载流量</th>
+                <th>平均耗时</th>
+                <th>
+                    <a target="_blank" href="summary">请求统计</a>
+                </th>
+            </tr>
+            <tr v-for="s in g.servers">
+                <th> {{ s.ip }}:{{ s.port }} </th>
+                <th style="text-align: center"> {{ s.status   }} </th>
+                <td> {{ s.count    }} </td>
+                <td> {{ s.success  }} </td>
+                <td> {{ s['1xx']   }} </td>
+                <td> {{ s['2xx']   }} </td>
+                <td> {{ s['3xx']   }} </td>
+                <td> {{ s['4xx']   }} </td>
+                <td> {{ s['5xx']   }} </td>
+                <td> {{ s.reads    }} </td>
+                <td> {{ s.writes   }} </td>
+                <td> {{ s.times    }} </td>
+                <td>
+                    <a target="_blank" :href="'access?ip='+ s.ip +'&port='+ s.port">访问日志</a>
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    <a target="_blank" href="server">服务器管理</a>
+                </th>
+                <th> 合计 </th>
+                <td> {{ g.total.count    }} </td>
+                <td> {{ g.total.success  }} </td>
+                <td> {{ g.total['1xx']   }} </td>
+                <td> {{ g.total['2xx']   }} </td>
+                <td> {{ g.total['3xx']   }} </td>
+                <td> {{ g.total['4xx']   }} </td>
+                <td> {{ g.total['5xx']   }} </td>
+                <td> {{ g.total.reads    }} </td>
+                <td> {{ g.total.writes   }} </td>
+                <td> {{ g.total.times    }} </td>
+                <td>
+                    <a target="_blank" href="access">访问日志</a>
+                </td>
+            </tr>
+
+        </table>
+
+        <br>
+        <el-button type="primary" size="small" :disabled=" g.is_started" @click="start_ws">启动监控</el-button>
+        <el-button type="warning" size="small" :disabled="!g.is_started" @click="close_ws">停止监控</el-button>
+        <el-button type="danger"  size="small" :disabled="!g.is_started" @click="_reset"  >重置数据</el-button>
+
+    </div>
+
+</template>
+</div> <!-- app -->
+</body>
+</html>
+
+<script>
+    var my_data = ({{ my_data }});
+</script>
+
+<script src="js/monitor.js?{{ app_ver }}"></script>
+<script src="js/chart.js?{{ app_ver }}"></script>
