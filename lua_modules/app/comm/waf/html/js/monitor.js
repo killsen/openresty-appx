@@ -15,7 +15,7 @@ var g = {
 
 };
 
-var ws, timerId;
+var ws, timerPing, timerPong;
 var url  = (location.protocol == "https:" ? "wss://" : "ws://")
          +  location.hostname + location.pathname + location.search;
 
@@ -24,42 +24,63 @@ start_ws();
 
 function start_ws(){
 
-    // 监控 WebSocket
-    timerId && clearInterval(timerId);
-    timerId = setInterval(function(){
-        var now = new Date();
-        if (now - g.sync_time > 3000){
-            start_ws();  // 超过3秒没有同步数据：重启
-        }
-    }, 1000);
+    startPingPong();
 
     // 创建 WebSocket
     ws && ws.readyState==1 && ws.close();
     ws = new WebSocket(url);
 
     ws.onopen = function(e) {
+        startPingPong();
         g.is_started = true; // 已启动
         ws.send("start");
     };
 
     ws.onmessage = function(e) {
+        startPingPong();
+        if (e.data === "ping") {
+            ws.send("pone")
+            return
+        } else if (e.data === "pong") {
+            return
+        }
+
         my_data = JSON.parse(e.data);
         show_data();
-        ws && ws.readyState==1 && ws.send("next");
     };
 
 }
 
 function close_ws(){
 
-    g.is_started = false; // 已关闭
+    stopPingPong();
 
-    timerId && clearInterval(timerId);
-    timerId = null;
+    g.is_started = false; // 已关闭
 
     ws && ws.readyState==1 && ws.close();
     ws = null;
 
+}
+
+// 每 5 秒发一次 ping, 1 秒内没有收到 pong, 则重启
+function startPingPong() {
+    clearInterval(timerPing);
+    clearTimeout(timerPong);
+
+    timerPing = setInterval(function(){
+        ws && ws.readyState==1 && ws.send("ping");
+
+        timerPong && clearTimeout(timerPong);
+        timerPong = setTimeout(function() {
+            start_ws();
+        }, 1000);
+
+    }, 5000);
+}
+
+function stopPingPong() {
+    clearInterval(timerPing);
+    clearTimeout(timerPong);
 }
 
 function update_data(t){

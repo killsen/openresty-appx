@@ -12,27 +12,53 @@ __.name  = "服务器实时监控"
 
 local _html, _wait, _save, _reset
 
-__.start = function()
-
-    local ws = WS:new{
-            timeout = 3 * 1000, -- 3秒超时
-            max_payload_len = 65535
-        }
-    if not ws then return _html() end   -- 输出网页
+local function send_data(ws)
 
     local data, index
 
     while true do
-        local  msg = _wait(ws)
-        if not msg then break end -- 等待消息
-
-        if msg=="reset" then _reset() end
+        if ngx.worker.exiting() then break end
+        if ws.fatal then break end
 
         data, index = waf.status.get_data(index)
-        if not ws:send_text(data) then break end
+        if data and data ~= "" then
+            if not ws:send_text(data) then break end
+        end
 
         ngx.sleep(0.25)
     end
+
+end
+
+local function recv_data(ws)
+
+    while true do
+        if ngx.worker.exiting() then break end
+        if ws.fatal then break end
+
+        local  msg = _wait(ws)
+        if not msg then break end -- 等待消息
+
+        if msg == "reset" then _reset() end
+    end
+
+end
+
+
+__.start = function()
+
+    local ws = WS:new{
+            timeout = 10000, -- 10秒超时
+            max_payload_len = 65535
+        }
+    if not ws then return _html() end   -- 输出网页
+
+    local co_send = ngx.thread.spawn(send_data, ws)
+    local co_recv = ngx.thread.spawn(recv_data, ws)
+
+    ngx.thread.wait(co_send, co_recv)
+    ngx.thread.kill(co_recv)
+    ngx.thread.kill(co_send)
 
     ws:send_close()
 
@@ -76,7 +102,13 @@ function _wait(ws)
 
     --  elseif typ == "pong"  then -- pong
         elseif typ == "close" then return -- 关闭连接
-        elseif typ == "text"  then return data -- 字符串
+        elseif typ == "text"  then
+            if data == "ping" then
+                bytes, err = ws:send_text("pong")
+                if not bytes then return end
+            else
+                return data
+            end
         end
 
     end

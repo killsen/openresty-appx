@@ -1,10 +1,7 @@
 
 var g = {
-        sync_count  : 0             // 同步次数
-    ,   sync_time   : new Date()    // 同步时间
-    ,   is_started  : false         // 是否启动
+        is_started  : false         // 是否启动
     ,   is_paused   : false
-    ,   max_id      : 0
     ,   my_head     : my_head
     ,   my_data     : []
     ,   all_data    : []
@@ -15,59 +12,72 @@ var g = {
     ,   server_port : server_port
 };
 
-var ws, timerId;
+var ws, timerPing, timerPong;
 var url  = (location.protocol == "https:" ? "wss://" : "ws://")
          +  location.hostname + location.pathname + location.search;
 
 start_ws();
 
+// 创建 WebSocket
 function start_ws(){
 
-    // 监控 WebSocket
-    timerId && clearInterval(timerId);
-    timerId = setInterval(function(){
-        var now = new Date();
-        if (now - g.sync_time > 3000){
-            start_ws();  // 超过3秒没有同步数据：重启
-        }
-    }, 1000);
+    startPingPong();
 
-    // 创建 WebSocket
     ws && ws.readyState==1 && ws.close();
     ws = new WebSocket(url);
 
     g.is_started = true;  // 已启动
     g.is_paused  = false; // 已继续
+    g.my_data    = [];
 
     ws.onopen = function(e) {
-        g.max_id  = 0;
-        ws.send("start");
+        startPingPong();
     };
 
     ws.onmessage = function(e) {
+        startPingPong();
 
-        g.sync_time  = new Date();
-        g.sync_count ++ ;
-
-        if(g.max_id==0) g.my_data=[];
+        if (e.data === "ping") {
+            ws.send("pone")
+            return
+        } else if (e.data === "pong") {
+            return
+        }
         show_data(e.data);
-
-        ws && ws.readyState==1 && ws.send("next");
     };
 
 }
 
 function close_ws(){
 
+    stopPingPong();
+
     g.is_started = false; // 已关闭
     g.is_paused  = false; // 已继续
-
-    timerId && clearInterval(timerId);
-    timerId = null;
 
     ws && ws.readyState==1 && ws.close();
     ws = null;
 
+}
+
+// 每 5 秒发一次 ping, 1 秒内没有收到 pong, 则重启
+function startPingPong() {
+    stopPingPong();
+
+    timerPing = setInterval(function(){
+        ws && ws.readyState==1 && ws.send("ping");
+
+        timerPong && clearTimeout(timerPong);
+        timerPong = setTimeout(function() {
+            start_ws();
+        }, 1000);
+
+    }, 5000);
+}
+
+function stopPingPong() {
+    clearInterval(timerPing);
+    clearTimeout(timerPong);
 }
 
 function show_data(data){
@@ -80,9 +90,6 @@ function show_data(data){
 
         var d = load_data(rows[i]);
         if(!d) continue;
-
-        if (g.max_id >= d.id) continue;
-            g.max_id  = d.id;
 
         g.all_data.unshift(d);
         if (g.all_data.length>1000){
