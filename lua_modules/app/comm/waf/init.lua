@@ -27,15 +27,20 @@ __.html = function(file_name)
 
 end
 
+local FILES = {}
+
 local function try_file()
 
     -- /waf/js/vue.js
     local uri = string.sub(ngx.var.uri, 5)
 
-    local  file = io.open(get_html_path() .. uri, "rb")
-    if not file then return ngx.exit(404) end
-
-    local data = file:read("a"); file:close()
+    local data = FILES[uri]
+    if not data then
+        local  file = io.open(get_html_path() .. uri, "rb")
+        if not file then return ngx.exit(404) end
+        data = file:read("a"); file:close()
+        FILES[uri] = data
+    end
 
     if string.sub(uri, -3) == ".js" then
         ngx.header["content-type"] = "application/javascript; charset=utf-8"
@@ -48,6 +53,7 @@ local function try_file()
     end
 
     ngx.header["content-length"] = #data
+    ngx.header["cache-control"] = "max-age=2592000"
 
     ngx.print(data)
 
