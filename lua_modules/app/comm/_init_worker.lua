@@ -46,3 +46,11 @@ else
     sslx.domain.run_tasks() -- 开启自动升级证书任务
     sslx.ocsp.run_tasks()   -- 开启自动更新OCSP任务
 end
+
+-- 服务器实时监控
+local pok, waf = pcall(require, "app.comm.waf")
+if not pok then
+    ngx.log(ngx.ERR, waf)
+else
+    waf.init()
+end

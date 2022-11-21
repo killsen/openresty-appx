@@ -15,6 +15,11 @@ __.monitor = function()
     require "app.comm.monitor".start()
 end
 
+-- 服务器实时监控
+__.waf = function()
+    require "app.comm.waf".run()
+end
+
 -- 认证校验
 __.auth = function()
 
