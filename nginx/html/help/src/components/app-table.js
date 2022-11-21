@@ -47,7 +47,7 @@ const template = `
         </table>
     </div>
     <div class="app-table-body">
-        <el-scrollbar v-if="rows$.length" max-height="100%">
+        <el-scrollbar v-if="rows$.length" max-height="100%" ref="scrollRef">
             <table cellspacing="0" cellpadding="0" border="0" style="width: 100%">
                 <tbody>
                     <tr class="app-table-body__row"  v-for="(r, rIdx) in rows$" :key="rIdx">
@@ -205,6 +205,10 @@ export default {
         // 监听列配置，重新初始化列
         cols(value) {
             this.initColumns(value)
+        },
+
+        rows$() {
+            this.scrollToTop()
         }
     },
 
@@ -242,6 +246,15 @@ export default {
                 }
             })
         },
+
+        scrollToTop() {
+            this.$nextTick(() => {
+                const $scroll = this.$refs.scrollRef
+                if ( !$scroll ) return
+
+                $scroll.scrollTo(0, 0)
+            })
+        }
     },
     template,
 }
