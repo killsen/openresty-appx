@@ -60,14 +60,15 @@ function __.log()
 
     if "waf" == ngx_var.log_type then return end
 
-    local  uri = ngx.var.request_uri
+    -- 过滤掉非 http(s) 请求
+    local  uri = ngx_var.request_uri
     if not uri then return end
 
     local index = _find( uri, '?' )
     if index then uri = _sub( uri, 1 , index - 1 ) end
 
     _log(dict_url, uri)
-    _log(dict_ip, ngx.var.remote_addr )
+    _log(dict_ip, ngx_var.remote_addr )
 
 end
 

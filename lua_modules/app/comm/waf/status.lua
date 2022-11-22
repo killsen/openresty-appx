@@ -62,6 +62,10 @@ function __.log()
 
     if "waf" == ngx_var.log_type then return end
 
+    -- 过滤掉非 http(s) 请求
+    local  uri = ngx_var.request_uri
+    if not uri then return end
+
     local ip   = ngx.ctx.server_ip   or "127.0.0.1"
     local port = ngx.ctx.server_port or 80
 
