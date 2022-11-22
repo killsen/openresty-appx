@@ -211,7 +211,7 @@ function _wait(ws)
             if data == "ping" then
                 bytes, err = ws:send_text("pong")
                 if not bytes then return end
-            elseif data ~= "ping" then
+            elseif data ~= "pong" and data ~= "" then
                 return data
             end
         end
