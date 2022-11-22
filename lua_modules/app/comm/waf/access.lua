@@ -137,16 +137,18 @@ __.start = function()
     local ip   = args.ip
     local port = tonumber(args.port) or 0
 
-    local ws = WS:new{
-            timeout = 10000, -- 10秒超时
-            max_payload_len = 65535
-        }
-    if not ws then return _html(ip, port) end   -- 输出网页
+    local ws = WS:new {
+        timeout         = 10000,  -- 10 秒超时
+        max_payload_len = 65535
+    }
+    if not ws then
+        return _html(ip, port)  -- 非 websocket 连接输出网页
+    end
 
-    local co_send = ngx.thread.spawn(send_data, ws)
     local co_recv = ngx.thread.spawn(recv_data, ws)
+    local co_send = ngx.thread.spawn(send_data, ws)
 
-    ngx.thread.wait(co_send, co_recv)
+    ngx.thread.wait(co_recv, co_send)
     ngx.thread.kill(co_recv)
     ngx.thread.kill(co_send)
 
@@ -209,7 +211,7 @@ function _wait(ws)
             if data == "ping" then
                 bytes, err = ws:send_text("pong")
                 if not bytes then return end
-            else
+            elseif data ~= "ping" then
                 return data
             end
         end
