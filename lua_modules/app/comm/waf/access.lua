@@ -139,7 +139,7 @@ __.start = function()
 
     local ws = WS:new {
         timeout         = 10000,  -- 10 秒超时
-        max_payload_len = 65535
+        max_payload_len = 655350
     }
     if not ws then
         return _html(ip, port)  -- 非 websocket 连接输出网页

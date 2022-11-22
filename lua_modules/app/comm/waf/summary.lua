@@ -148,11 +148,13 @@ __.start = function()
               or nil
     if not dict then return ngx.exit(400) end
 
-    local ws = WS:new{
-            timeout = 3 * 1000, -- 3秒超时
-            max_payload_len = 65535
-        }
-    if not ws then return _html(log) end   -- 输出网页
+    local ws = WS:new {
+        timeout         = 10000,  -- 10 秒超时
+        max_payload_len = 655350
+    }
+    if not ws then
+        return _html(log)  -- 非 websocket 连接输出网页
+    end
 
     local function _send(data)
         return ws:send_text(data)
