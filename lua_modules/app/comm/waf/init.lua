@@ -106,6 +106,7 @@ __.log = function()
     waf.status.log()
     waf.summary.log()
     waf.access.log()
+    waf.check.log_by_lua()
 
 end
 
