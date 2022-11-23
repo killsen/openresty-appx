@@ -1,0 +1,196 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>WAF 设置</title>
+    <link rel="stylesheet" href="css/element-ui.css">
+    <script src="js/vue.js"></script>
+    <script src="js/element-ui.js"></script>
+    <style type="text/css">
+        .el-table__header tr,
+        .el-table__header th {
+            padding: 0;
+            height: 35px;
+        }
+        .el-table__body tr,
+        .el-table__body td {
+            padding: 0;
+            height: 35px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+<div id="app" style="margin: 1em; padding: 0;">
+<template>
+
+    <el-tabs v-model="g.rule_type">
+        <el-tab-pane label="WAF设置"            name="waf"          ></el-tab-pane>
+        <el-tab-pane label="IP白名单"           name="ip_allow"     ></el-tab-pane>
+        <el-tab-pane label="IP黑名单"           name="ip_deny"      ></el-tab-pane>
+        <el-tab-pane label="URL白名单"          name="url_allow"    ></el-tab-pane>
+        <el-tab-pane label="URL黑名单"          name="url_deny"     ></el-tab-pane>
+        <el-tab-pane label="拦截CC攻击"         name="cc_deny"      ></el-tab-pane>
+        <el-tab-pane label="拦截压力测试工具"    name="ua_deny"     ></el-tab-pane>
+        <el-tab-pane label="拦截SQL注入"        name="args_deny"    ></el-tab-pane>
+        <el-tab-pane label="拦截Cookie攻击"     name="cookie_deny"  ></el-tab-pane>
+    </el-tabs>
+
+    <el-form v-if="g.rule_type === 'waf'" label-width="150px">
+        <el-form-item label="开启IP白名单">
+            <el-switch v-model="g.ip_allow"></el-switch>
+        </el-form-item>
+        <el-form-item label="开启IP白名单">
+            <el-switch v-model="g.ip_deny"></el-switch>
+        </el-form-item>
+        <el-form-item label="开启URL白名单">
+            <el-switch v-model="g.url_allow"></el-switch>
+        </el-form-item>
+        <el-form-item label="开启URL黑名单">
+            <el-switch v-model="g.url_deny"></el-switch>
+        </el-form-item>
+        <el-form-item label="拦截CC攻击">
+            <el-switch v-model="g.cc_deny"></el-switch>
+        </el-form-item>
+        <el-form-item label="拦截压力测试工具">
+            <el-switch v-model="g.ua_deny"></el-switch>
+        </el-form-item>
+        <el-form-item label="拦截SQL注入">
+            <el-switch v-model="g.args_deny"></el-switch>
+        </el-form-item>
+        <el-form-item label="拦截Cookie攻击">
+            <el-switch v-model="g.cookie_deny"></el-switch>
+        </el-form-item>
+        <el-form-item>
+            <el-button type="primary" @click="save">保存</el-button>
+        </el-form-item>
+    </el-form>
+
+    <el-form v-if="g.rule_type === 'ip_allow'" label-width="150px">
+        <el-form-item label="开启IP白名单">
+            <el-switch v-model="g.ip_allow"></el-switch>
+        </el-form-item>
+        <el-form-item label="IP白名单">
+            <el-input type="textarea" :rows="20" v-model="g.ip_allow_rules"></el-input>
+        </el-form-item>
+        <el-form-item>
+            <el-button type="primary" @click="save">保存</el-button>
+        </el-form-item>
+    </el-form>
+
+    <el-form v-if="g.rule_type === 'ip_deny'" label-width="150px">
+        <el-form-item label="开启IP黑名单">
+            <el-switch v-model="g.ip_deny"></el-switch>
+        </el-form-item>
+        <el-form-item label="IP黑名单">
+            <el-input type="textarea" :rows="20" v-model="g.ip_deny_rules"></el-input>
+        </el-form-item>
+        <el-form-item>
+            <el-button type="primary" @click="save">保存</el-button>
+        </el-form-item>
+    </el-form>
+
+    <el-form v-if="g.rule_type === 'url_allow'" label-width="150px">
+        <el-form-item label="开启URL白名单">
+            <el-switch v-model="g.url_allow"></el-switch>
+        </el-form-item>
+        <el-form-item label="URL白名单">
+            <el-input type="textarea" :rows="20" v-model="g.url_allow_rules"></el-input>
+        </el-form-item>
+        <el-form-item>
+            <el-button type="primary" @click="save">保存</el-button>
+        </el-form-item>
+    </el-form>
+
+    <el-form v-if="g.rule_type === 'url_deny'" label-width="150px">
+        <el-form-item label="开启URL黑名单">
+            <el-switch v-model="g.url_deny"></el-switch>
+        </el-form-item>
+        <el-form-item label="URL黑名单">
+            <el-input type="textarea" :rows="20" v-model="g.url_deny_rules"></el-input>
+        </el-form-item>
+        <el-form-item>
+            <el-button type="primary" @click="save">保存</el-button>
+        </el-form-item>
+    </el-form>
+
+    <el-form v-if="g.rule_type === 'cc_deny'" label-width="150px">
+        <el-form-item label="拦截CC攻击">
+            <el-switch v-model="g.cc_deny"></el-switch>
+        </el-form-item>
+        <el-form-item label="CC攻击频率">
+            <span> 同一IP在 </span>
+            <el-input-number v-model="g.cc_seconds"></el-input-number>
+            <span> 秒内超过 </span>
+            <el-input-number v-model="g.cc_count"></el-input-number>
+            <span> 次请求同一URL </span>
+        </el-form-item>
+        <el-form-item>
+            <el-button type="primary" @click="save">保存</el-button>
+        </el-form-item>
+    </el-form>
+
+    <el-form v-if="g.rule_type === 'ua_deny'" label-width="150px">
+        <el-form-item label="拦截压力测试工具">
+            <el-switch v-model="g.ua_deny"></el-switch>
+        </el-form-item>
+        <el-form-item label="User-Agent黑名单">
+            <el-input type="textarea" :rows="20" v-model="g.ua_deny_rules"></el-input>
+        </el-form-item>
+        <el-form-item>
+            <el-button type="primary" @click="save">保存</el-button>
+        </el-form-item>
+    </el-form>
+
+    <el-form v-if="g.rule_type === 'args_deny'" label-width="150px">
+        <el-form-item label="拦截SQL注入">
+            <el-switch v-model="g.args_deny"></el-switch>
+        </el-form-item>
+        <el-form-item label="Args参数黑名单">
+            <el-input type="textarea" :rows="20" v-model="g.args_deny_rules"></el-input>
+        </el-form-item>
+        <el-form-item>
+            <el-button type="primary" @click="save">保存</el-button>
+        </el-form-item>
+    </el-form>
+
+    <el-form v-if="g.rule_type === 'cookie_deny'" label-width="150px">
+        <el-form-item label="拦截Cookie攻击">
+            <el-switch v-model="g.cookie_deny"></el-switch>
+        </el-form-item>
+        <el-form-item label="Cookie黑名单">
+            <el-input type="textarea" :rows="20" v-model="g.cookie_deny_rules"></el-input>
+        </el-form-item>
+        <el-form-item>
+            <el-button type="primary" @click="save">保存</el-button>
+        </el-form-item>
+    </el-form>
+
+</template>
+</div> <!-- app -->
+</body>
+</html>
+
+<script>
+
+var g = { G };
+
+g.rule_type = "waf";
+
+function save() {
+    fetch("/waf/config/save", {
+        method: 'POST',
+        body: JSON.stringify(g)
+    }).then(res => {
+        console.log(res)
+    })
+}
+
+new Vue({
+    el      : '#app',
+    data    : { g },
+    methods : { save },
+})
+
+</script>

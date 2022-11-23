@@ -72,10 +72,14 @@ __.run = function()
         ["/waf/monitor"     ] = waf.monitor.start,
         ["/waf/access"      ] = waf.access.start,
         ["/waf/summary"     ] = waf.summary.start,
+
         ["/waf/server"      ] = waf.api_server.list,
         ["/waf/server/add"  ] = waf.api_server.add,
         ["/waf/server/del"  ] = waf.api_server.del,
         ["/waf/server/set"  ] = waf.api_server.set,
+
+        ["/waf/config"      ] = waf.config.html,
+        ["/waf/config/save" ] = waf.config.save,
     }
 
     local func = FUNCS[ngx.var.uri] or try_file
@@ -106,7 +110,6 @@ __.log = function()
     waf.status.log()
     waf.summary.log()
     waf.access.log()
-    waf.check.log_by_lua()
 
 end
 
