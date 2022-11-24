@@ -18,20 +18,24 @@ local binip_in_cidrs= iputils.binip_in_cidrs
 iputils.enable_lrucache() -- 启动IP缓存
 
 local CACHE         = {}
-local _insert       = table.insert
 local _cleart       = require "table.clear"
+local _insert       = table.insert
+local _concat       = table.concat
+local _gsub         = string.gsub
+local _ssub         = string.sub
 
-local ngx_path      = ngx.config.prefix()
-local log_path      = ngx_path .. "/logs/"
+local ngx           = ngx
+local log_path      = ngx.config.prefix() .. "/logs/"
+local io_open       = io.open
 
 local info = debug.getinfo(1, "S")
-local path = string.sub(info.source, 2)  -- 去掉开头的@符号
-local rule_path = string.gsub(path, "config.lua", "rules/")
+local path = _ssub(info.source, 2)  -- 去掉开头的@符号
+local rule_path = _gsub(path, "config.lua", "rules/")
 
 local on, off  = true, false
 
 -- 读取配置
-local function read_conf()
+local function read_conf(obj)
 
     local conf = {
         attack_log      = on,           -- 是否开启攻击信息记录
@@ -52,49 +56,48 @@ local function read_conf()
         cc_count        = 100,          -- 最多 100 个请求(同一个url)
     }
 
-    local  file = io.open(log_path .. "/waf_config.json", "rb")
-    if not file then return conf end
+    if type(obj) ~= "table" then
+        local  file = io_open(log_path .. "/waf_config.json", "rb")
+        if not file then return conf end
 
-    local data = file:read("a"); file:close()
-    local obj  = cjson.decode(data)
+        local data = file:read("a")
+                     file:close()
 
-    if type(obj) == "table" then
-        for k, v in pairs(obj) do
-            if type(v) == type(obj[k]) then
-                conf[k] = v
-            end
+        obj = cjson.decode(data)
+        if type(obj) ~= "table" then return conf end
+    end
+
+    for k, v in pairs(obj) do
+        if type(conf[k]) == type(v) then
+            conf[k] = v
         end
     end
 
-    return conf
+    if conf.cc_seconds < 1 then conf.cc_seconds = 1 end
+    if conf.cc_count   < 1 then conf.cc_count   = 1 end
 
+    return conf
 end
 
 -- 保存配置
-local function save_conf(t)
+local function save_conf(obj)
 
-    if type(t) ~= "table" then return end
+    if type(obj) ~= "table" then return end
 
-    local c = read_conf()
-    for k, v in pairs(c) do
-        if type(v) == type(t[k]) then
-            c[k] = t[k]
-        end
-    end
+    local conf = read_conf(obj)
 
-    local pok, encode = pcall(require, "resty.prettycjson")
+    local  pok, encode = pcall(require, "resty.prettycjson")
     if not pok then encode = cjson.encode end
 
-    local data = encode(c)
+    local data = encode(conf)
 
-    local  file = io.open(log_path .. "/waf_config.json", "wb+")
+    local  file = io_open(log_path .. "/waf_config.json", "wb+")
     if not file then return end
 
     file:write(data)
     file:close()
 
     return true
-
 end
 
 -- 读取规则列表
@@ -106,8 +109,8 @@ local function read_rules(rule_name)
     rules = {}
     CACHE[rule_name] = rules
 
-    local file = io.open(log_path .. '/waf_' .. rule_name, "r") or
-                 io.open(rule_path .. '/'    .. rule_name, "r")
+    local file = io_open(log_path .. '/waf_' .. rule_name, "r") or
+                 io_open(rule_path .. '/'    .. rule_name, "r")
     if not file then return rules end
 
     for line in file:lines() do
@@ -124,12 +127,12 @@ end
 local function save_rules(rule_name, rules)
 
     if type(rules) == "table" then
-        rules = table.concat(rules, "\n")
+        rules = _concat(rules, "\n")
     end
 
     if type(rules) ~= "string" then return end
 
-    local file = io.open(log_path .. '/waf_' .. rule_name, "wb+")
+    local  file = io_open(log_path .. '/waf_' .. rule_name, "wb+")
     if not file then return end
 
     file:write(rules)
@@ -223,7 +226,7 @@ __.update = function()
     if waf_index == index then return end
        waf_index = index
 
-    _cleart(CACHE)
+    _cleart(CACHE)  -- 清空缓存
 
     local conf = read_conf()
     for k, v in pairs(conf) do
@@ -235,17 +238,19 @@ end
 -- 保存配置
 __.save = function()
 
-    if ngx.req.get_method() ~= "POST" then return end
+    if ngx.req.get_method() ~= "POST" then return ngx.exit(400) end
 
-    ngx.req.read_body()
+                 ngx.req.read_body()
     local body = ngx.req.get_body_data()
-    local t = cjson.decode(body)
-    if type(t) ~= "table" then return end
+    local obj  = cjson.decode(body)
+    if type(obj) ~= "table" then return ngx.exit(400) end
 
-    t.cc_count   = tonumber(t.cc_count)
-    t.cc_seconds = tonumber(t.cc_seconds)
+    __.update()  -- 刷新配置信息
 
-    save_conf(t)
+    obj.cc_count   = tonumber(obj.cc_count)
+    obj.cc_seconds = tonumber(obj.cc_seconds)
+
+    save_conf(obj)  -- 保存配置
 
     local rule_names = {
         "ip_allow", "ip_deny",
@@ -254,14 +259,14 @@ __.save = function()
     }
 
     for _, rule_name in ipairs(rule_names) do
-        local rules = t[rule_name .. "_rules"]
+        local rules = obj[rule_name .. "_rules"]
         if type(rules) == "string" then
-            save_rules(rule_name, rules)
+            save_rules(rule_name, rules)  -- 保存规则列表
         end
     end
 
     waf_limit:set("waf_index", ngx.now() * 1000)
-    __.update()
+    __.update()  -- 刷新配置信息
 
     ngx.print("OK")
 
@@ -270,15 +275,16 @@ end
 -- 输出网页
 __.html = function()
 
+    if ngx.req.get_method() ~= "GET" then return ngx.exit(400) end
+
     local waf = require "app.comm.waf"
 
     local  html = waf.html("config.html")
     if not html then return ngx.exit(404) end
 
-    local g = {}
-    for k, v in pairs(read_conf()) do
-        g[k] = v
-    end
+    __.update()  -- 刷新配置信息
+
+    local g = read_conf()
 
     local rule_names = {
         "ip_allow", "ip_deny",
@@ -288,10 +294,10 @@ __.html = function()
 
     for _, rule_name in ipairs(rule_names) do
         local rules = read_rules(rule_name)
-        g[rule_name .. "_rules"] = table.concat(rules, "\n")
+        g[rule_name .. "_rules"] = _concat(rules, "\n")
     end
 
-    html = string.gsub(html, "{ G }" , cjson.encode(g) )
+    html = _gsub(html, "{ G }" , cjson.encode(g) )
 
     ngx.header["content-type"] = "text/html; charset=utf-8"
     ngx.print(html)
