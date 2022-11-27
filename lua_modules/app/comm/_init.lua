@@ -1,11 +1,12 @@
 
 -- 初始化 v22.11.19 by Killsen ------------------
 
-local lfs   = require "lfs"
-local pcall = pcall
-local type  = type
-local ssub  = string.sub
-local gsub  = string.gsub
+local lfs       = require "lfs"
+local pcall     = pcall
+local type      = type
+local ssub      = string.sub
+local gsub      = string.gsub
+local gmatch    = string.gmatch
 
 -- nginx 运行目录
 local prefix = ngx.config.prefix()
@@ -20,19 +21,39 @@ do
 end
 
 do
-    -- 兼容处理 Windows 下 ffi.load 路径问题
     local ffi = require "ffi"
-    if ffi.os == "Windows" then
-        local ffi_load = ffi.load
-        ffi.load = function(filename)
-            local pok, clib
+    local ffi_load = ffi.load
+      ffi.ffi_load = ffi_load
 
-            pok, clib = pcall(ffi_load, filename)
-            if pok then return clib end
+    local io_open  = io.open
+    local io_close = io.close
 
-            pok, clib = pcall(ffi_load, prefix .. filename)
-            if pok then return clib end
+    -- 根据 cpath 加载
+    ffi.load = function(name, global)
+        name = gsub(name, [[%\]], "/")
+        if ssub(name, 2, 3) == ":/" or   -- 盘符根目录
+           ssub(name, 1, 1) == "/" then  -- 根目录
+            return ffi_load(name, global)
         end
+
+        if ssub(name, -3) == ".so" then
+            name = ssub(name, 1, -4)
+        elseif ssub(name, -4) == ".dll" then
+            name = ssub(name, 1, -5)
+        end
+
+        local cpath = package.cpath
+
+        for path in gmatch(cpath, "[^;]+") do
+            local fpath = gsub(path, "?", name)
+            local file = io_open(fpath)
+            if file ~= nil then
+                io_close(file)
+                return ffi_load(fpath, global)
+            end
+        end
+
+        return ffi_load(name, global)
     end
 
 end
