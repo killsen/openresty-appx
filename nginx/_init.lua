@@ -95,9 +95,6 @@ if not pok then
 end
 
 rawset(_G, "_app_main"      , app.main)
-rawset(_G, "_app_auth"      , app.auth)
 rawset(_G, "_app_help"      , app.help)
-rawset(_G, "_app_monitor"   , app.monitor)
-rawset(_G, "_app_info"      , app.info)
 rawset(_G, "_app_debug"     , app.debug)
 rawset(_G, "_app_waf"       , app.waf)
