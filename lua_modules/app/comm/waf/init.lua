@@ -59,6 +59,13 @@ local function try_file()
 
 end
 
+-- 显示服务器信息
+local function show_info()
+    local pok, resty_info = pcall(require, "resty.info")
+    if not pok then return ngx.exit(404) end
+    resty_info.info()
+end
+
 local FUNCS
 
 __.run = function()
@@ -67,7 +74,6 @@ __.run = function()
     if not waf then waf = require "app.comm.waf" end
 
     FUNCS = FUNCS or {
-        ["/waf"             ] = waf.monitor.start,
         ["/waf/"            ] = waf.monitor.start,
         ["/waf/monitor"     ] = waf.monitor.start,
         ["/waf/access"      ] = waf.access.start,
@@ -80,9 +86,24 @@ __.run = function()
 
         ["/waf/config"      ] = waf.config.html,
         ["/waf/config/save" ] = waf.config.save,
+
+        ["/waf/info"        ] = show_info,
     }
 
-    local func = FUNCS[ngx.var.uri] or try_file
+    local uri = ngx.var.uri
+
+    local func = FUNCS[uri]
+    if func then
+        if not waf.auth.check() then return end
+    end
+
+    if uri == "/waf/login" then
+        func = waf.auth.login
+    elseif uri == "/waf/logout" then
+        func = waf.auth.logout
+    end
+
+    func = func or try_file
 
     local pok = pcall(func)
     if not pok then

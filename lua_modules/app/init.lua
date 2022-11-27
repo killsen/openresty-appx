@@ -3,39 +3,25 @@ local __ = {}
 
 local appx = require "app.comm.appx"
 
--- 服务器信息
-__.info = function()
-    local pok, resty_info = pcall(require, "resty.info")
-    if not pok then return ngx.exit(404) end
-    resty_info.info()
-end
-
--- 服务器监控
-__.monitor = function()
-    require "app.comm.monitor".start()
-end
-
 -- 服务器实时监控
 __.waf = function()
     require "app.comm.waf".run()
 end
 
 -- 认证校验
-__.auth = function()
-
-    -- Nginx-Lua HTTP 401 认证校验
-    -- http://chenxiaoyu.org/2012/02/08/nginx-lua-401-auth/
+local function check_auth()
 
     -- 本机访问无需认证
-    if ngx.var.remote_addr == "127.0.0.1" then return end
+    if ngx.var.remote_addr == "127.0.0.1" then return true end
 
-    local uid = ngx.var.remote_user
-    local psw = ngx.var.remote_passwd  -- 读不到密码
+    local waf_admin_uid = ngx.var.waf_admin_uid or "admin"
+    local waf_admin_psw = ngx.var.waf_admin_psw or "123456"
 
-    if uid=="nginx@openresty" then return end
+    local remote_user   = ngx.var.remote_user
+    local remote_passwd = ngx.var.remote_passwd
 
-    -- 检查账号密码
-    if uid=="nginx" and psw=="openresty" then return end
+    if remote_user == waf_admin_uid .. "@" .. waf_admin_psw then return true end
+    if remote_user == waf_admin_uid and remote_passwd == waf_admin_psw then return true end
 
     -- 返回 HTTP 401 认证输入框
     ngx.header.www_authenticate = [[Basic realm="Restricted"]]
@@ -57,6 +43,10 @@ __.help = function()
 
     local app  = appx.new(app_name)
     if not app then return ngx.exit(404) end
+
+    if act_type ~= "api.d.ts" and act_type ~= "api.js" then
+        if not check_auth() then return end  -- 认证校验
+    end
 
         if act_type == "help"     then app:help()
     elseif act_type == "reload"   then app:reload()

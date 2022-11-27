@@ -1,0 +1,66 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>WAF登录</title>
+    <link rel="stylesheet" href="css/element-ui.css">
+    <script src="js/vue.js"></script>
+    <script src="js/element-ui.js"></script>
+</head>
+<body>
+<div id="app" style="margin: 1em; padding: 0;">
+<template>
+
+    <h3>{{ g.msg }}</h3>
+
+    <el-form label-width="100px" style="width: 400px;">
+        <el-form-item label="账号:">
+            <el-input type="input" v-model="g.form.uid"></el-input>
+        </el-form-item>
+        <el-form-item label="密码:">
+            <el-input type="input" v-model="g.form.psw"></el-input>
+        </el-form-item>
+        <el-form-item>
+            <el-button type="primary" @click="login">登录</el-button>
+        </el-form-item>
+    </el-form>
+
+</template>
+</div> <!-- app -->
+</body>
+</html>
+
+<script>
+
+const g = {
+    msg  : "请输入账号/密码登录：",
+    form : {
+        uid : "",
+        psw : "",
+    }
+}
+
+function login() {
+
+    if (!g.form.uid || !g.form.psw) return;
+
+    fetch("/waf/login", {
+        method: 'POST',
+        body: JSON.stringify(g.form)
+    }).then(res => {
+        if (res.ok) {
+            location.reload()
+        } else {
+            g.msg = "账号/密码错误，请重新输入："
+        }
+    })
+}
+
+new Vue({
+    el      : '#app',
+    data    : { g     },
+    methods : { login },
+})
+
+</script>

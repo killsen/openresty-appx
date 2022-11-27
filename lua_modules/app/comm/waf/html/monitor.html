@@ -29,7 +29,14 @@
 
     <div style="margin-left: 1em; float:left;">
 
-        <h2>服务器实时监控 </h2>
+        <h2>服务器实时监控</h2>
+
+        <h4>
+            <a target="_blank" href="info">服务器信息</a> |
+            <a target="_blank" href="config">WAF设置</a> |
+            <a target="_blank" href="summary">请求统计</a> |
+            <a target="_blank" href="access">访问日志</a>
+        </h4>
 
         <p>运行时间： <span>{{ g.server_time }}</span></p>
         <p>在线连接： <span>{{ g.connections }}</span></p>
@@ -71,7 +78,7 @@
             </tr>
             <tr>
                 <th>
-                    <a target="_blank" href="server">服务器管理</a>
+                    <!-- <a target="_blank" href="server">服务器管理</a> -->
                 </th>
                 <th> 合计 </th>
                 <td> {{ g.total.count    }} </td>
@@ -95,6 +102,7 @@
         <el-button type="primary" size="small" :disabled=" g.is_started" @click="start_ws">启动监控</el-button>
         <el-button type="warning" size="small" :disabled="!g.is_started" @click="close_ws">停止监控</el-button>
         <el-button type="danger"  size="small" :disabled="!g.is_started" @click="_reset"  >重置数据</el-button>
+        <el-button type="danger"  size="small" @click="logout">退出</el-button>
 
     </div>
 
@@ -105,6 +113,13 @@
 
 <script>
     var my_data = ({{ my_data }});
+
+    function logout() {
+        fetch("/waf/logout").finally( () => {
+            location.reload()
+        })
+    }
+
 </script>
 
 <script src="js/monitor.js?{{ app_ver }}"></script>
