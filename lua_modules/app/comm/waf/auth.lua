@@ -5,9 +5,15 @@ local session           = require "resty.session"
 
 local __ = {}
 
+-- 指定 secret 以保证各 worker 一致
+local secret = ngx.decode_base64("akwBCqG5zO8yovgN7rmUPW7YNe4X19K9OikzazGhj6s=")
+
 local function get_session()
-    local sss = session.new { name = "waf", cookie = { path = "/waf/"} }
-    return sss
+    return session.new {
+        name    = "waf",
+        secret  = secret,
+        cookie  = { path = "/waf/" }
+    }
 end
 
 __.check = function()
