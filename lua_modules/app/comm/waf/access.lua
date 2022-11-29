@@ -35,7 +35,7 @@ end
 
 function __.log()
 
-    if "waf" == ngx_var.log_type then return end
+    if "off" == ngx_var.waf_log then return end
 
     -- 过滤掉非 http(s) 请求
     local  uri = ngx_var.request_uri
