@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <title>服务器实时监控</title>
+    <base href="/waf/">
     <link rel="stylesheet" href="css/main.css" />
     <link rel="stylesheet" href="css/element-ui.css">
     <script src="js/vue.js"></script>
@@ -33,6 +34,7 @@
 
         <h4>
             <a target="_blank" href="info">服务器信息</a> |
+            <a target="_blank" href="domain">域名证书管理</a> |
             <a target="_blank" href="config">WAF设置</a> |
             <a target="_blank" href="summary">请求统计</a> |
             <a target="_blank" href="access">访问日志</a>
@@ -122,5 +124,5 @@
 
 </script>
 
-<script src="js/monitor.js?{{ app_ver }}"></script>
-<script src="js/chart.js?{{ app_ver }}"></script>
+<script src="js/monitor.js"></script>
+<script src="js/chart.js"></script>

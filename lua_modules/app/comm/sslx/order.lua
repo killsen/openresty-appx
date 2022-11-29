@@ -72,7 +72,8 @@ __.order_cert__ = {
     },
     res = {
         { "cert_pem"        , "证书文件"                    },
-        { "expires_time"    , "失效时间"    , "number"      },
+        { "issuance_time"   , "证书颁发日期"    , "number"  },
+        { "expires_time"    , "证书截止日期"    , "number"  },
     }
 }
 __.order_cert = function(t)
@@ -193,10 +194,11 @@ __.order_cert = function(t)
     if not cert_pem then return echo("证书下载失败: ", err) end
 
     local cert = x509.new(cert_pem)
-    local expires_time = cert:get_not_after()  -- 证书截止时间
+    local issuance_time = cert:get_not_before()
+    local expires_time  = cert:get_not_after()
 
-    echo("证书颁发日期: ", dt.to_date(cert:get_not_before()))
-    echo("证书截止日期: ", dt.to_date(cert:get_not_after()))
+    echo("证书颁发日期: ", dt.to_date(issuance_time))
+    echo("证书截止日期: ", dt.to_date(expires_time))
     echo("")
 
     echo("删除域名TXT记录")
@@ -208,8 +210,9 @@ __.order_cert = function(t)
     echo("")
 
     return {
-        cert_pem     = cert_pem,
-        expires_time = expires_time
+        cert_pem        = cert_pem,
+        issuance_time   = issuance_time,
+        expires_time    = expires_time,
     }
 
 end

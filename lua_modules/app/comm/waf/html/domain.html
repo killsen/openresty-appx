@@ -1,0 +1,72 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>域名证书管理</title>
+    <base href="/waf/">
+    <link rel="stylesheet" href="css/element-ui.css">
+    <script src="js/vue.js"></script>
+    <script src="js/element-ui.js"></script>
+    <style type="text/css">
+        .el-table__header tr,
+        .el-table__header th {
+            padding: 0;
+            height: 35px;
+        }
+        .el-table__body tr,
+        .el-table__body td {
+            padding: 0;
+            height: 35px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+<div id="app" style="margin: 1em; padding: 0;">
+<template>
+
+    <h2>域名证书管理</h2>
+
+    <h4>
+        <span style="margin-right: 5px;">申请</span>
+        <a target="_blank" href="domain/certs?mode=debug">测试证书</a> |
+        <a target="_blank" href="domain/certs?mode=order">正式证书</a>
+
+        <span style="margin-left: 20px; margin-right: 5px;">前往腾讯云</span>
+        <a target="_blank" href="https://console.dnspod.cn/dns/list">DNSPod</a> |
+        <a target="_blank" href="https://console.dnspod.cn/account/token/token">Token</a>
+    </h4>
+
+    <el-table :data="g.domains" stripe style="width: 100%">
+
+        <el-table-column prop="domain_name" label="域名" min-width="100" align="center">
+            <template slot-scope="scope">
+                <span style="margin-right: 5px;">{{ scope.row.domain_name }}</span>
+                <a target="_blank"
+                   :href="'https://console.dnspod.cn/dns/' + scope.row.domain_name + '/record'">
+                   <i class="el-icon-position"></i>
+               </a>
+            </template>
+        </el-table-column>
+
+        <el-table-column prop="dnspod_token"    label="域名登录凭证"    min-width="100" align="center"></el-table-column>
+        <el-table-column prop="issuance_time"   label="证书颁发日期"    min-width="100" align="center"></el-table-column>
+        <el-table-column prop="expires_time"    label="证书失效日期"    min-width="100" align="center"></el-table-column>
+    </el-table>
+
+</template>
+</div> <!-- app -->
+</body>
+</html>
+
+<script>
+
+    const g = { G };
+
+    new Vue({
+        el      : '#app',
+        data    : { g }
+    })
+
+</script>

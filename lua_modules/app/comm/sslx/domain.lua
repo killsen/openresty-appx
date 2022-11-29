@@ -41,7 +41,8 @@ __.load_domains__ = {
         DomainInfo = {
             { "domain_name"     , "待申请证书域名"              },
             { "dnspod_token"    , "dnspod登录凭证"              },
-            { "expires_time?"   , "失效时间"        , "number"  },
+            { "issuance_time?"  , "证书颁发日期"    , "number"  },
+            { "expires_time?"   , "证书截止日期"    , "number"  },
         }
     },
     res = "@DomainInfo[]"
@@ -62,6 +63,7 @@ __.load_domains = function ()
             _insert(DOMAINS, {
                 domain_name  = d.domain_name,   -- 主域名: 如 baidu.com, qq.com 等
                 dnspod_token = d.dnspod_token,  -- 域名服务器登录凭证: 目前只支持 dnspod
+                issuance_time= nil,
                 expires_time = nil
             })
         end
@@ -165,10 +167,12 @@ local function get_domain_list()
         if not d.expires_time then
             local cert_pem = read_file(d.domain_name .. "-crt.pem")
             if not cert_pem then
-                d.expires_time = 0
+                d.issuance_time = 0
+                d.expires_time  = 0
             else
                 local cert = x509.new(cert_pem)
-                d.expires_time = cert:get_not_after()
+                d.issuance_time = cert:get_not_before()
+                d.expires_time  = cert:get_not_after()
             end
         end
         if d.expires_time < expires_time then
@@ -203,8 +207,9 @@ __.update_certs = function(is_tasks)
             echo            = _echo,
             wait            = _wait,
         }
-        if res then -- 更新证书失效时间
-            d.expires_time = res.expires_time
+        if res then -- 更新证书证书有效期
+            d.issuance_time = res.issuance_time
+            d.expires_time  = res.expires_time
         end
     end
 

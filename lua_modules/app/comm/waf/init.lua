@@ -87,6 +87,9 @@ __.run = function()
         ["/waf/config"      ] = waf.config.html,
         ["/waf/config/save" ] = waf.config.save,
 
+        ["/waf/domain"      ] = waf.domain.index,
+        ["/waf/domain/certs"] = waf.domain.certs,
+
         ["/waf/info"        ] = show_info,
     }
 
