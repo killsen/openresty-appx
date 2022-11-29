@@ -6,7 +6,6 @@ local ngx           = ngx
 local ocsp          = require "ngx.ocsp"
 local _request      = require "app.utils.request"
 local sslx          = require "app.comm.sslx"
-local cache         = sslx.cache
 
 local __ = { }
 
@@ -73,70 +72,24 @@ __.get_ocsp_resp = function (domain_name, cert_der)
 
 end
 
--- OCSP回复
-__.set_ocsp_resp = function (domain_name, cert_der)
-
-    if not domain_name or not cert_der then return end
-
-    local key = "ocsp/" .. domain_name
-    local _, _, ocsp_resp = cache.peek(key)
-
-    if not ocsp_resp then return end
-
-    -- 检查OCSP
-    local ok, err = ocsp.validate_ocsp_response(ocsp_resp, cert_der)
-    if not ok then
-        cache.delete(key)
-        ngx.log(ngx.ERR, "failed to validate ocsp response: ", err)
-        return
-    end
-
-    -- OCSP回复
-    local ok, err = ocsp.set_ocsp_status_resp(ocsp_resp)
-    if not ok then
-        cache.delete(key)
-        ngx.log(ngx.ERR, "failed to set ocsp status response: ", err)
-        return
-    end
-
-end
-
 -- 加载OCSP
-__.load_ocsp = function (domain_name, reload)
+__.load_ocsp = function (domain_name)
 
     if not domain_name then return end
 
-    local cert = sslx.cert.load_cert(domain_name)
-    if not cert then return end
+    local d = sslx.domain.get_domain(domain_name)
+    if not d or not d.cert_der then return end
 
-    local cert_der = cert.cert_der
-
-    local key = "ocsp/" .. domain_name
-    if reload then cache.delete(key) end
-
-    local ocsp_resp = cache.get(key, function()
-
-        local ocsp_resp = __.get_ocsp_resp(domain_name, cert_der)
-
-        if not ocsp_resp then
-            return nil, nil, 10  -- 缓存 10 秒
-        else
-            return ocsp_resp, nil, 24 * 60 * 60  -- 缓存一天
-        end
-
-    end)
-
-    if ocsp_resp then
-        -- 检查OCSP
-        local ok, err = ocsp.validate_ocsp_response(ocsp_resp, cert_der)
-        if not ok then
-            cache.delete(key)
-            ngx.log(ngx.ERR, "failed to validate ocsp response: ", err)
-            ocsp_resp = nil
-        end
+    if not d.ocsp_resp then
+        d.ocsp_resp = __.get_ocsp_resp(d.domain_name, d.cert_der)
+        return
     end
 
-    return ocsp_resp
+    -- 检查OCSP
+    local ok = ocsp.validate_ocsp_response(d.ocsp_resp, d.cert_der)
+    if not ok then
+        d.ocsp_resp = __.get_ocsp_resp(d.domain_name, d.cert_der)
+    end
 
 end
 
@@ -149,12 +102,10 @@ local function run_tasks(premature)
     if is_running then return end
     is_running = true
 
-    local servers = sslx.domain.load_servers()
-    for _, domain_name in ipairs(servers) do
-        local ocsp_resp = __.load_ocsp(domain_name)
-        if not ocsp_resp then
-            __.load_ocsp(domain_name, true)
-        end
+    local domains = sslx.domain.load_domains()
+
+    for _, d in ipairs(domains) do
+        __.load_ocsp(d.domain_name)
     end
 
     is_running = false
@@ -164,9 +115,11 @@ end
 __.run_tasks = function()
     if is_started then return end
        is_started = true
-    if ngx.worker.id() ~= 0 then return end
 
-    ngx.log(ngx.ERR, "start tasks: sslx.ocsp.run_tasks")
+    -- 每个 worker 都要执行任务
+    -- if ngx.worker.id() ~= 0 then return end
+
+    ngx.log(ngx.ERR, "sslx.ocsp.run_tasks")
 
     ngx.timer.at   ( 0, run_tasks)  -- 初次加载
     ngx.timer.every(60, run_tasks)  -- 每1分钟检查一次

@@ -1,6 +1,7 @@
 
 local __ = { }
 
+-- 域名证书管理
 __.index = function()
 
     local sslx  = require "app.comm.sslx"
@@ -15,14 +16,11 @@ __.index = function()
 
     local domains = {}
     for _, d in ipairs(list) do
-        local issuance_time = tonumber(d.issuance_time) or 0
-        local expires_time  = tonumber(d.expires_time ) or 0
-
         table.insert(domains, {
             domain_name   = d.domain_name,
             dnspod_token  = d.dnspod_token,
-            issuance_time = issuance_time > 0 and dt.to_date(issuance_time) or "",
-            expires_time  = expires_time  > 0 and dt.to_date(expires_time ) or "",
+            issuance_time = d.issuance_time > 0 and dt.to_date(d.issuance_time) or "",
+            expires_time  = d.expires_time  > 0 and dt.to_date(d.expires_time ) or "",
         })
     end
 
@@ -37,9 +35,10 @@ __.index = function()
 
 end
 
+-- 申请测试证书或正式证书
 __.certs = function()
 
-    local sslx  = require "app.comm.sslx"
+    local sslx = require "app.comm.sslx"
 
     local args = ngx.req.get_uri_args()
 

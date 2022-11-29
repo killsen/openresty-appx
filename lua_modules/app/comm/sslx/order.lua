@@ -35,6 +35,8 @@ end
 -- 申请证书
 __.order_certs = function(debug_mode)
 
+    debug_mode = (debug_mode ~= false)
+
     ngx.header["content-type"] = "text/plain"
 
     local domains = sslx.domain.load_domains()
@@ -46,17 +48,32 @@ __.order_certs = function(debug_mode)
 
     _echo("共有 ", #domains, " 个域名需要申请证书")
 
+    local ok, res, err
+
     for _, d in ipairs(domains) do
         _echo("-------------------------------------")
-        __.order_cert {
+        res, err = __.order_cert {
             domain_name     = d.domain_name,
             dnspod_token    = d.dnspod_token,
-            debug_mode      = (debug_mode ~= false),
+            debug_mode      = debug_mode,
             retry_times     = 10,
             echo            = _echo,
             wait            = _wait,
         }
+        if res then
+            ok = true
+            if not debug_mode then  -- 更新有效期
+                d.issuance_time = res.issuance_time
+                d.expires_time  = res.expires_time
+            end
+        end
     end
+
+    if ok and not debug_mode then
+        sslx.domain.update_index()  -- 更新缓存 index
+    end
+
+    return ok, err
 
 end
 
