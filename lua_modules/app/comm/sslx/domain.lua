@@ -24,7 +24,7 @@ local my_key            = "sslx.domain.index"
 
 local __ = { }
 
-local DOMAINS, SERVERS, LAST_INDEX
+local DOMAINS, LAST_INDEX
 
 -- 更新缓存 index
 local function update_index()
@@ -47,7 +47,6 @@ local function update_cache()
     if LAST_INDEX ~= index then
         LAST_INDEX = index
         DOMAINS    = nil
-        SERVERS    = nil
     end
 
 end
@@ -126,46 +125,6 @@ __.load_domains = function ()
     end
 
     return DOMAINS
-
-end
-
--- 加载服务器名称列表
-__.load_servers = function ()
-
-    update_cache()  -- 更新缓存
-
-    if SERVERS then return SERVERS end
-       SERVERS = {}
-
-    local domains = __.load_domains()
-
-    for _, d in ipairs(domains) do
-        _insert(SERVERS, d.domain_name)
-        SERVERS[d.domain_name] = d.domain_name
-    end
-
-    return SERVERS
-
-end
-
--- 获取子域名对应的主域名: 如 www.baidu.com -> baidu.com
-__.get_domain_name = function(server_name)
-
-    local servers = __.load_servers()
-    if #servers == 0 then return end
-
-    local domain_name = servers[server_name]
-    if domain_name then return domain_name end
-    if domain_name == false then return end
-
-    servers[server_name] = false
-
-    for _, s in ipairs(servers) do
-        if _sub(server_name, 0-#s) == s then
-            servers[server_name] = s
-            return s
-        end
-    end
 
 end
 
