@@ -132,6 +132,8 @@ end
 __.get_domain = function(server_name)
 -- @return : @DomainInfo
 
+    if type(server_name) ~= "string" then return end
+
     local domains = __.load_domains()
     if #domains == 0 then return end
 
@@ -166,7 +168,7 @@ local function _wait(msg, seconds)
 end
 
 -- 获取需要申请证书的域名列表
-local function get_domain_list()
+local function get_domains_to_update()
 -- @return : @DomainInfo[]
 
     local list  = {}
@@ -189,7 +191,7 @@ end
 -- 升级证书: 证书不存在自动申请, 30天后到期自动延期
 __.update_certs = function(is_tasks)
 
-    local domains = get_domain_list()
+    local domains = get_domains_to_update()
 
     if #domains == 0 then
         if not is_tasks then _echo("暂无需要升级的证书") end
