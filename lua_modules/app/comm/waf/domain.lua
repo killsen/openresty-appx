@@ -16,9 +16,16 @@ __.index = function()
 
     local domains = {}
     for _, d in ipairs(list) do
+
+        local s = d.dnspod_token
+        if type(s) == "string" and #s > 31 then
+            -- 替换部分 token
+            s = string.sub(s, 1, 15) .. string.rep("*", 16) .. string.sub(s, 32)
+        end
+
         table.insert(domains, {
             domain_name   = d.domain_name,
-            dnspod_token  = d.dnspod_token,
+            dnspod_token  = s,
             issuance_time = d.issuance_time > 0 and dt.to_date(d.issuance_time) or "",
             expires_time  = d.expires_time  > 0 and dt.to_date(d.expires_time ) or "",
         })
