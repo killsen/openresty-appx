@@ -20,14 +20,14 @@ end
 -- 保留原有的 package.path
 local package_path = rawget(_G, "package_path")
 if not package_path then
-    package_path = package.path
+    package_path = gsub(package.path, "\\", "/")
     rawset(_G, "package_path", package_path)
 end
 
 -- 保留原有的 package.cpath
 local package_cpath = rawget(_G, "package_cpath")
 if not package_cpath then
-    package_cpath = package.cpath
+    package_cpath = gsub(package.cpath, "\\", "/")
     rawset(_G, "package_cpath", package_cpath)
 end
 
