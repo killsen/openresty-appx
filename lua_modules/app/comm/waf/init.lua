@@ -79,10 +79,10 @@ __.run = function()
         ["/waf/access"      ] = waf.access.start,
         ["/waf/summary"     ] = waf.summary.start,
 
-        ["/waf/server"      ] = waf.api_server.list,
-        ["/waf/server/add"  ] = waf.api_server.add,
-        ["/waf/server/del"  ] = waf.api_server.del,
-        ["/waf/server/set"  ] = waf.api_server.set,
+        ["/waf/server"      ] = waf.server.list,
+        ["/waf/server/add"  ] = waf.server.add,
+        ["/waf/server/del"  ] = waf.server.del,
+        ["/waf/server/set"  ] = waf.server.set,
 
         ["/waf/config"      ] = waf.config.html,
         ["/waf/config/save" ] = waf.config.save,

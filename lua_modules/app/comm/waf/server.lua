@@ -26,8 +26,8 @@ local __ = { _VERSION = "v21.07.05" }
 ----------------------------------------------------------------------------------------------------
 
 local last_index = -1
-local dict = ngx.shared.api_server_index
-dict:add("api_server_index", 1)
+local dict = ngx.shared.my_index
+dict:add("waf/server/index", 1)
 
 ----------------------------------------------------------------------------------------------------
 
@@ -60,7 +60,7 @@ local function load_json()
 
     local list
 
-    local file = _openx("logs/api_server.json", "rb")
+    local file = _openx("logs/server.json", "rb")
 
     if file then
         local json = file:read("*a"); file:close()
@@ -146,7 +146,7 @@ end
 -- 加载服务器列表
 local function load_servers()
 
-    local curr_index = dict:get("api_server_index")
+    local curr_index = dict:get("waf/server/index")
     curr_index = tonumber(curr_index) or 0
 
     -- 数据没有变化直接输出
@@ -192,7 +192,7 @@ local function save_servers(servers)
 
     sort_servers(servers)
 
-    local  file, err = _openx("logs/api_server.json", "wb")
+    local  file, err = _openx("logs/server.json", "wb")
     if not file then
         ngx.log(ngx.ERR, "open file error: ", err)
         return
@@ -204,7 +204,7 @@ local function save_servers(servers)
     file:close()
 
     -- 永久缓存
-    dict:incr("api_server_index", 1, 0)
+    dict:incr("waf/server/index", 1, 0)
 
     load_servers()
     update_index()
@@ -303,7 +303,7 @@ end
 -- 30秒内超过5次失败自动下线
 local function set_server_down(ip, port)
 
-    local key   = "fails/" .. ip .. ":" .. port
+    local key   = "waf/server/fails/" .. ip .. ":" .. port
     local fails = 1
 
     -- 累加服务器失败次数
@@ -419,7 +419,7 @@ local templ = require "resty.template"
 -- 列表页面
 __.list = function()
 
-    local  html = waf.html("api_server.html")
+    local  html = waf.html("server.html")
     if not html then return ngx.exit(400) end
 
     ngx.header["content-type"] = "text/html"
@@ -484,7 +484,7 @@ __.add = function()
 
     if t.weight < 1 then t.weight = 1 end  -- 权重
 
-    local key = "fails/" .. ip .. ":" .. port
+    local key = "waf/server/fails/" .. ip .. ":" .. port
     dict:delete(key)  -- 重置服务器失败次数
 
     local servers = clone_servers()     -- 克隆
@@ -514,7 +514,7 @@ __.del = function()
         return ngx.redirect("/waf/server")
     end
 
-    local key = "fails/" .. ip .. ":" .. port
+    local key = "waf/server/fails/" .. ip .. ":" .. port
     dict:delete(key)  -- 重置服务器失败次数
 
     local servers = clone_servers()     -- 克隆
@@ -542,7 +542,7 @@ __.set = function()
         return ngx.redirect("/waf/server")
     end
 
-    local key = "fails/" .. ip .. ":" .. port
+    local key = "waf/server/fails/" .. ip .. ":" .. port
     dict:delete(key)  -- 重置服务器失败次数
 
     local servers = clone_servers()     -- 克隆

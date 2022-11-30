@@ -33,7 +33,7 @@ function __.init()
 
     waf_status:set( NGX_START, ngx.time() )
 
-    local servers = waf.api_server.load()
+    local servers = waf.server.load()
 
     for _, server in ipairs(servers) do
         local key = server.ip .. ":" .. server.port .. "/"
@@ -125,7 +125,7 @@ function __.get_data(index)
         return _encode(t), ngx_index
     end
 
-    local servers, serverx = waf.api_server.load()
+    local servers, serverx = waf.server.load()
 
     t.servers = {}
 
