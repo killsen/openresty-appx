@@ -12,7 +12,7 @@ local function get_session()
     return session.new {
         name    = "waf",
         secret  = secret,
-        cookie  = { path = "/waf/" }
+        cookie  = { path = "/" }
     }
 end
 
@@ -38,7 +38,9 @@ __.check = function()
     local  html = waf.html("login.html")
     if not html then ngx.exit(404) end
 
-    ngx.header["content-type"] = "text/html"
+    ngx.header["Content-Type" ] = "text/html"
+    ngx.header["Cache-control"] = "no-cache"
+
     ngx.print(html)
 
 end
@@ -66,13 +68,15 @@ __.login = function()
         return ngx.exit(403)
     end
 
-    local waf_admin_uid = ngx.var.waf_admin_uid or "admin"
-    local waf_admin_psw = ngx.var.waf_admin_psw or "123456"
+    local uid = ngx.var.waf_admin_uid or "admin"
+    local psw = ngx.var.waf_admin_psw or "123456"
+
+    psw = ngx.encode_base64(ngx.hmac_sha1(uid, psw))
 
     local sss = get_session()
 
     -- 登录/检查密码
-    if args.uid == waf_admin_uid and args.psw == waf_admin_psw then
+    if args.uid == uid and args.psw == psw then
         sss:start()
         sss.data.uid = args.uid
         sss:save()

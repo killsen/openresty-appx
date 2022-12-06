@@ -8,27 +8,6 @@ __.waf = function()
     require "app.comm.waf".run()
 end
 
--- 认证校验
-local function check_auth()
-
-    -- 本机访问无需认证
-    if ngx.var.remote_addr == "127.0.0.1" then return true end
-
-    local waf_admin_uid = ngx.var.waf_admin_uid or "admin"
-    local waf_admin_psw = ngx.var.waf_admin_psw or "123456"
-
-    local remote_user   = ngx.var.remote_user
-    local remote_passwd = ngx.var.remote_passwd
-
-    if remote_user == waf_admin_uid .. "@" .. waf_admin_psw then return true end
-    if remote_user == waf_admin_uid and remote_passwd == waf_admin_psw then return true end
-
-    -- 返回 HTTP 401 认证输入框
-    ngx.header.www_authenticate = [[Basic realm="Restricted"]]
-    ngx.exit(401)
-
-end
-
 -- 程序助手
 __.help = function()
 
@@ -45,7 +24,8 @@ __.help = function()
     if not app then return ngx.exit(404) end
 
     if act_type ~= "api.d.ts" and act_type ~= "api.js" then
-        if not check_auth() then return end  -- 认证校验
+        local waf = require "app.comm.waf"
+        if not waf.auth.check() then return end  -- 认证校验
     end
 
         if act_type == "help"     then app:help()
