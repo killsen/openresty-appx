@@ -1,6 +1,6 @@
 -- @@api : openresty-vsce
 
-local __ = { __VERSION = "v1.0.0" }
+local __ = { _VERSION = "v1.0.0" }
 
 local HTML_PATH
 local function get_html_path()

@@ -13,7 +13,7 @@ local lower         = string.lower
 local lfs           = require "lfs"
 local lfs_attr      = lfs.attributes
 
-local __ = { __VERSION = "v1.0.0" }
+local __ = { _VERSION = "v1.0.0" }
 
 local MOD_LOADED = {}
 

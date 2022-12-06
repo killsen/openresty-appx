@@ -1,6 +1,6 @@
 -- @@api : openresty-vsce
 
-local __ = { __VERSION = "v1.0.0" }
+local __ = { _VERSION = "v1.0.0" }
 
 __.init_dao__ = {
     "重新建表",
