@@ -21,7 +21,7 @@ end
 
 load_lib("lfs")
 load_lib("socket")
-load_lib("utf8")
+load_lib("lua-utf8")
 load_lib("hashids")
 load_lib("iconv")
 

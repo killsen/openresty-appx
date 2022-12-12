@@ -9,7 +9,7 @@
 -- https://github.com/starwing/luautf8
 
 local ngx   = ngx
-local utf8  = require "utf8"
+local utf8  = require "lua-utf8"
 local u     = utf8.escape
 
 local __ = { _VERSION = "v21.04.10 "}

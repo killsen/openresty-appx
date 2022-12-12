@@ -3,7 +3,7 @@
 
 local apix              = require "app.comm.apix"
 local utils             = apix.gen_api_utils
-local _width            = require "utf8".width
+local _width            = require "lua-utf8".width
 local _split            = require "ngx.re".split
 local _insert           = table.insert
 local _concat           = table.concat
