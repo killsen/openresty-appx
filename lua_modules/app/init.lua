@@ -1,7 +1,30 @@
 
-local __ = {}
-
+local ngx  = ngx
 local appx = require "app.comm.appx"
+
+local __ = { _VERSION = "1.0.0" }
+
+do  -- 改写 ngx.on_abort
+    local ngx_on_abort = rawget(_G, "ngx_on_abort")
+    if not ngx_on_abort then
+        ngx_on_abort = ngx.on_abort
+        rawset(_G, "ngx_on_abort", ngx_on_abort)
+
+        local function on_abort()
+            local cb = ngx.ctx[on_abort]
+            if type(cb) == "function" then
+                pcall(cb)
+            elseif type(cb) == "number" then
+                ngx.exit(cb)
+            end
+        end
+
+        ngx.on_abort = function(cb)
+            ngx.ctx[on_abort] = cb
+            pcall(ngx_on_abort, on_abort)
+        end
+    end
+end
 
 -- 服务器实时监控
 __.waf = function()
@@ -53,6 +76,8 @@ __.main = function()
 
     local app  = appx.new(app_name)
     if not app then return ngx.exit(404) end
+
+    ngx.on_abort()  -- 开启客户端退出事件
 
     app:action(ngx.var.uri)
 
