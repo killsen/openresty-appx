@@ -31,7 +31,7 @@ end
 
 __.copy = function(into, from, keys, ...)
 
-    if type(into) ~= "table" then into = {} end
+    into = into or {}
 
     _copy(into, from, keys)
 
