@@ -23,6 +23,8 @@ local function path_exists(path)
     return attr and attr.mode == "directory"
 end
 
+local gen_valid_func
+
 -- API模块构造器
 __.new = function(t, path)
 
@@ -79,7 +81,10 @@ __.new = function(t, path)
             end
 
             if type(mod) == "table" then
-                __.gen_valid_func(mod)
+                if not gen_valid_func then
+                    gen_valid_func = require "app.comm.apix".gen_valid_code
+                end
+                gen_valid_func(mod)
                 rawset(mod, "__filename", filename)
                 if exists then -- 目录存在: 创建API模块
                     mod = __.new(mod, apipath)

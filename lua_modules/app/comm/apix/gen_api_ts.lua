@@ -275,6 +275,9 @@ end
 
 -- 生成参数列表
 local function gen_args(t, step)
+-- @t           : table
+-- @step        : number
+-- @return      : void
 
     step = tonumber(step) or 1
     local print = function(...)  -- 打印缩进
@@ -315,6 +318,9 @@ end
 
 -- 生成 dao 接口
 local function gen_dao(name, type_loaded)
+-- @name        : string
+-- @type_loaded : table
+-- @return      : void
 
     -- 举例：$pos_bi_order[]
     if type(name) ~= "string" then return end
@@ -374,6 +380,10 @@ end
 
 -- 生成模块中出现的全部 dao 接口
 local function load_daos(mod, daos, level)
+-- @mod         : string | table
+-- @daos        : table
+-- @level       : number
+-- @return      : void
 
     level = tonumber(level) or 0
     if level > 10 then return end
@@ -398,6 +408,10 @@ end
 
 -- 生成自定义类型接口
 local function gen_type(name, t, type_loaded)
+-- @name        : string
+-- @t           : string | table
+-- @type_loaded : table
+-- @return      : void
 
     if type(name) ~= "string" then return end
 
@@ -435,6 +449,9 @@ end
 
 -- 生成自定义类型接口
 local function gen_types(types, type_loaded)
+-- @types       : table
+-- @type_loaded : table
+-- @return      : void
 
     if type(types) ~= "table" then return end
 
@@ -446,6 +463,9 @@ end
 
 -- 生成函数声明
 local function gen_function(name, dt)
+-- @name    : string
+-- @dt      : table
+-- @return  : void
 
     local desc = dt.desc or dt[1] or ""
     local pv   = dt.pv   or dt[2]
@@ -523,6 +543,10 @@ local function gen_function(name, dt)
 end
 
 return function(app_name, base_name, api_name)
+-- @app_name  : string
+-- @base_name : string
+-- @api_name  : string
+-- @return    : void
 
     base_name = base_name or ngx.req.get_uri_args().base or ""
     api_name  = api_name  or ngx.req.get_uri_args().api  or nil

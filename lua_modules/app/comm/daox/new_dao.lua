@@ -18,16 +18,19 @@ local tostring      = tostring
 
 -- 合并数组
 local function _join(t, sep, i, j)
+-- @return : string
     return _concat(t, sep or "", i, j)
 end
 
 -- 合并sql语句
 local function _sql(t)
+-- @return : string
     return _concat(t, "")
 end
 
 -- 字符串单引号转义
 local function _quote(v)
+-- @return : string
 
     if v == nil or v == ngx.null then
         return "null"
@@ -44,6 +47,7 @@ end
 --- { uid="abc"         }
 --> {"uid like '%abc%'" }
 local function _like_list(data)
+-- @return : string[]
 
     local fv, i = {}, 0
 
@@ -67,6 +71,7 @@ end
 --- { uid="1000",   qty=123,  "1=1", {} }
 --> {"uid='1000'", "qty=123", "1=1"     }
 local function _eq_list(data)
+-- @return : string[]
 
     local fv, i = {}, 0
 
@@ -90,6 +95,7 @@ end
 --- {  total="sum(qty*price)"   }
 --> { "sum(qty*price) as total" }
 local function _as_list(data)
+-- @return : string[]
 
     local fv, i = {}, 0
 
@@ -112,11 +118,13 @@ end
 
 -- 删除表
 local function _drop(table_name)
+-- @return : string
     return " drop table if exists " .. table_name .. " ; "
 end
 
 -- 创建表
 local function _create(table_name, table_desc, field_list)
+-- @return : string
 
     local fi, i = {}, 0
     local pj, j = {}, 0
@@ -148,6 +156,7 @@ end
 
 -- 创建索引
 local function _create_index(table_name, table_index)
+-- @return : string
 
     local sql, i = {}, 0
 
@@ -163,12 +172,14 @@ end
 
 -- 清空表
 local function _clear(table_name)
+-- @return : string
     return " truncate table " .. table_name .. " ; "
 --  return " delete from "    .. table_name .. " ; "
 end
 
 -- 返回key数组
 local function _keys(t)
+-- @return : string[]
 
     local keys, i = {}, 0
 
@@ -185,6 +196,7 @@ end
 
 -- 删除数据（批量）
 local function _delete_rows(table_name, field_list, data)
+-- @return : string
 
     local cols, rows, i = {}, {}, 0
     local keys, k = nil, 0
@@ -225,6 +237,7 @@ end
 
 -- 检查字段名
 local function _check_fields(field_list)
+-- @return : boolean
 
     if type(field_list) ~= "table" or #field_list == 0 then
         return nil, "字段不能为空"
@@ -251,6 +264,7 @@ end
 
 -- 插入数据（批量）
 local function _insert_rows(table_name, field_list, data)
+-- @return : string
 
     if type(table_name) ~= "string" or table_name == "" then
         return nil, "表名称不能为空"
@@ -305,6 +319,7 @@ local function _insert_rows(table_name, field_list, data)
 end
 
 local function _insert(table_name, field_list, data)
+-- @return : string
 
     if type(data) ~= "table" then
         return nil, "数据不能为空"
@@ -320,6 +335,7 @@ end
 
 -- 修改数据
 local function _update(table_name, data)
+-- @return : string
 
     local fv, wh = {}, _eq_list(data)
 
@@ -341,6 +357,7 @@ end
 
 -- 删除数据
 local function _delete(table_name, data)
+-- @return : string
 
     local wh = _eq_list(data)
 
@@ -355,6 +372,7 @@ end
 
 -- 查询数据
 local function _select(table_name, data, limit, is_like)
+-- @return : string
 
     local fields = "*"
     ----------------------------------------------------------------------------
@@ -447,6 +465,8 @@ local init_fields
 
 -- 创建dao对象
 local function new_dao (mod, db_execute)
+-- @mod        : table
+-- @db_execute : function
 
     if init_fields == nil then
         init_fields = require "app.comm.daox".init_fields

@@ -17,7 +17,10 @@ local NAMEX = {
 }
 
 __.get_namex = function(name)
+-- @name    : string
+-- @return  : string
 
+    -- @names : string[]
     local names = _split(name, [[\.]])
 
     for i, n in ipairs(names) do
@@ -30,6 +33,10 @@ end
 
 -- 加载 api 目录及其子目录下全部 lua 文件
 __.load_path = function(list, path, name)
+-- @list    : string[]
+-- @path    : string
+-- @name    : string
+-- @return  : void
 
     -- 文件列表
     local flist = file_list (path)
@@ -43,13 +50,14 @@ __.load_path = function(list, path, name)
 
     for _, p in ipairs(plist) do
         __.load_path(list, path .. p .. "/",
-                            name .. p .. ".")
+                           name .. p .. ".")
     end
 
 end
 
 -- 取得 key 列表及最大长度
 __.get_fun_keys = function(mod)
+-- @mod : table
 
     local keys, max_len = {}, 0
 
@@ -70,6 +78,7 @@ end
 
 -- 取得 key 列表及最大长度
 __.get_tbl_keys = function(mod)
+-- @mod : table
 
     local keys, max_len = {}, 0
 
@@ -90,6 +99,8 @@ end
 
 -- 排序迭代器
 __.sort_pairs = function(t)
+-- @t       : table
+-- @return  : function
 
     local keys, index = {}, 0
 
@@ -120,6 +131,9 @@ __.sort_pairs = function(t)
 end
 
 __.load_api_mod = function(api_root, api_name)
+-- @api_root : table
+-- @api_name : string
+-- @return   : table
 
     if type(api_root) ~= "table" then return end
     if type(api_name) ~= "string" or api_name == "" then return api_root end

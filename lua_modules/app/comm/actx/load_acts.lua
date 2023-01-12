@@ -10,6 +10,10 @@ local path_list = require "app.comm.utils".path_list  -- 目录列表
 ---------------------------------------------------
 
 local function load_path (list, path, name)
+-- @list    : string[]
+-- @path    : string
+-- @name    : string
+-- @return  : void
 
     -- 文件列表
     local flist = file_list (path)
@@ -28,6 +32,8 @@ end
 
 
 local function load_acts (app_name)
+-- @app_name : string
+-- @return   : table
 
     local app = require "app.comm.appx".new(app_name)
     if not app then return {} end

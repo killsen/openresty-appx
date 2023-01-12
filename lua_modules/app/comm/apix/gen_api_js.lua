@@ -7,6 +7,9 @@ local _split            = require "ngx.re".split
 
 -- 生成父命名空间
 local function _namespace(name, namespace_loaded)
+-- @name             : string
+-- @namespace_loaded : table
+-- @return           : void
 
     local names = _split(name, [[\.]])
     local pname = "$api"
@@ -24,6 +27,10 @@ local function _namespace(name, namespace_loaded)
 end
 
 return function(app_name, base_name, api_name)
+-- @app_name  : string
+-- @base_name : string
+-- @api_name  : string
+-- @return    : void
 
     base_name = base_name or ngx.req.get_uri_args().base or ""
     api_name  = api_name  or ngx.req.get_uri_args().api  or nil

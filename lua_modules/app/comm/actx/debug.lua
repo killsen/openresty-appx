@@ -3,6 +3,7 @@ local __ = {}
 
 -- 获取调试文件或代码
 __.get_debug_file = function()
+-- @return: string, string
 
     -- 仅用于本机调试
     if ngx.var.remote_addr ~= "127.0.0.1" or
@@ -51,6 +52,9 @@ end
 
 -- 执行调试文件或代码
 __.do_debug_file = function(file_name, codes)
+-- @file_name : string
+-- @codes     : string
+-- @return    : void
 
     if not file_name then return end
 

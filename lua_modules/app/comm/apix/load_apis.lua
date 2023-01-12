@@ -15,6 +15,8 @@ local MAX_LEVEL     = 5
 
 -- lua文件列表
 local function file_list(path)
+-- @path   : string
+-- @return : string[]
 
     local list, index = {}, 0
 
@@ -37,6 +39,8 @@ end
 
 -- 子目录列表
 local function path_list(path)
+-- @path   : string
+-- @return : string[]
 
     local list, index = {}, 0
 
@@ -61,6 +65,8 @@ end
 
 -- 加载 api 目录及其子目录下全部 lua 文件
 local function load_path(path)
+-- @path   : string
+-- @return : string[]
 
     local list = {}
 
@@ -84,6 +90,9 @@ local function load_path(path)
 end
 
 local function init_apis(api, level)
+-- @api       : table
+-- @level     : number
+-- @return    : void
 
     level = tonumber(level) or 0
     if level > MAX_LEVEL then return end
@@ -110,6 +119,11 @@ local function init_apis(api, level)
 end
 
 local function load_apis(apis, base_api, base_name, level)
+-- @api       : table
+-- @base_api  : table
+-- @base_name : name
+-- @level     : number
+-- @return    : void
 
     level = tonumber(level) or 0
     if level > MAX_LEVEL then return end
@@ -131,6 +145,8 @@ local function load_apis(apis, base_api, base_name, level)
 end
 
 return function(app_name, base_name)
+-- @app_name  : string
+-- @base_name : string
 
     local app = require "app.comm.appx".new(app_name)
     if not app then return end

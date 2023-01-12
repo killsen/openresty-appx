@@ -16,6 +16,9 @@ local __ = {}
 
 -- 文件名(不含后缀名)
 __.file_name = function(file)
+-- @file    : string
+-- @return  : string
+
     local idx = _match(file, ".+()%.%w+$")
     if(idx) then
         return _sub(file, 1, idx-1)
@@ -26,11 +29,16 @@ end
 
 -- 后缀名
 __.exe_name = function(file)
+-- @file    : string
+-- @return  : string
+
     return _match(file, ".+%.(%w+)$")
 end
 
 -- lua文件列表
 __.file_list = function(path)
+-- @path    : string
+-- @return  : string[]
 
     local list, index = {}, 0
 
@@ -51,6 +59,8 @@ end
 
 -- 子目录列表
 __.path_list = function(path)
+-- @path    : string
+-- @return  : string[]
 
     local list, index = {}, 0
 
@@ -71,6 +81,8 @@ end
 
 -- 错误日志输出
 __.err_log = function(err, ...)
+-- @err     : string
+-- @return  : void
 
     ngx.status = 500
     ngx.header["content-type"] = "text/plain"
@@ -90,8 +102,11 @@ end
 
 -- 分割字符串
 __.split = function(str, sep)
+-- @str     : string
+-- @sep     : string
+-- @return  : string[]
 
-    local arr   = {}
+    local arr = {}
     if type(str) ~= "string" or type(sep) ~= "string" then
         return arr
     end

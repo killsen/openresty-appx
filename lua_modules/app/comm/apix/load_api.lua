@@ -6,6 +6,8 @@ local _insert   = table.insert
 local _gsub     = string.gsub
 
 local function load_api(mod, name)
+-- @mod  : table
+-- @name : string
 
     local t = {
         name    = name,

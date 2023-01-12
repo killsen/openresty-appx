@@ -454,6 +454,8 @@ local function gen_valid_code(types, args, extends)
 end
 
 return function(mod)
+-- @mod    : any
+-- @return : void
 
     if type(mod) ~= "table" then return end
 

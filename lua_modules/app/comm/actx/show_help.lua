@@ -1,6 +1,7 @@
 
 local help_html
 local function get_def_help()
+-- @return : string
 
     if help_html ~= nil then
         return help_html
@@ -22,6 +23,8 @@ end
 
 local app_helps = {}
 local function get_app_help(app_name)
+-- @app_name : string
+-- @return   : string
 
     local app = require "app.comm.appx".new(app_name)
     if not app then return end
@@ -49,6 +52,8 @@ local function get_app_help(app_name)
 end
 
 local function show_help(app_name)
+-- @app_name : string
+-- @return   : void
 
     local app = require "app.comm.appx".new(app_name)
     if not app then return ngx.exit(404) end

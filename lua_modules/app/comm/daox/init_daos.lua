@@ -5,12 +5,16 @@ local file_list = require "app.comm.utils".file_list  -- lua文件列表
 local _quote    = ngx.quote_sql_str
 
 local function echo(...)
+-- @return : void
     ngx.say(...)
     ngx.flush()
 end
 
 -- 取得表结构
 local function get_columns(app_name, dao_name)
+-- @app_name    : string
+-- @dao_name    : string
+-- @return      : { name, desc, def, type, key } []
 
     local app = require "app.comm.appx".new(app_name)
     local dao = app:load_dao(dao_name)
@@ -52,6 +56,12 @@ end
 
 -- 升级表结构
 local function upgrade_table(app_name, dao_name, index, add_column, drop_column)
+-- @app_name    : string
+-- @dao_name    : string
+-- @index       : number
+-- @add_column  : boolean
+-- @drop_column : boolean
+-- @return      : boolean
 
     local app = require "app.comm.appx".new(app_name)
     local dao = app:load_dao(dao_name)
@@ -179,6 +189,10 @@ local function upgrade_table(app_name, dao_name, index, add_column, drop_column)
 end
 
 local function init_daos(app_name, add_column, drop_column)
+-- @app_name    : string
+-- @add_column  : boolean
+-- @drop_column : boolean
+-- @return      : boolean
 
     ngx.header['content-type'] = "text/plain"
 

@@ -1,6 +1,8 @@
 
 -- 加载 dao 列表
 local function load_daos (app_name)
+-- @app_name : string
+-- @return   : table[]
 
     local file_list   = require "app.comm.utils".file_list   -- lua文件列表
     local err_log     = require "app.comm.utils".err_log     -- 错误日志输出

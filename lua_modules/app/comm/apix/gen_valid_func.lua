@@ -28,6 +28,8 @@ end
 local gen_valid_code
 
 return function (mod)
+-- @mod    : table
+-- @return : void
 
     if type(mod) ~= "table" then return end
 

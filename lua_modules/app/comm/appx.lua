@@ -21,6 +21,8 @@ local mt = { __index = _M }
 local APPS = {}
 
 local function _load(mod_name)
+-- @mod_name   : string
+-- @return     : any
     local app = _M.new(ngx.ctx.app_name)
     if not app then return end
     return app:load_mod(mod_name)
@@ -28,6 +30,7 @@ end
 rawset(_G, "_load", _load)
 
 local function _unload()
+-- @return : void
     local app = _M.new(ngx.ctx.app_name)
     if not app then return end
     return app:unload()
@@ -36,6 +39,7 @@ rawset(_G, "_unload", _unload)
 
 -- 创建应用
 function _M.new (app_name)  --@@
+-- @app_name : string
 
     app_name = app_name or ngx.ctx.app_name
     if type(app_name) ~= "string" or app_name == "" then
@@ -80,33 +84,39 @@ end
 
 -- 清空缓存
 function _M:clean_up()
+-- @return : void
     _cleart(self.mod_loaded)
     _cleart(self.fun_unload)
 end
 
 -- 在线帮助
 function _M:help()
+-- @return : void
     actx.show_help(self.name)
 end
 
 -- 重新加载
 function _M:reload()
+-- @return : void
     self:clean_up()
     actx.reload_app(self.name)
 end
 
 -- 卸载程序
 function _M:unload()
+-- @return : void
     self.db.unload()
 end
 
 -- 运行程序
 function _M:action()
+-- @return : void
     actx.do_action(self.name)
 end
 
 -- 重新建表
 function _M:init_dao ()
+-- @return : void
 
     local args = ngx.req.get_uri_args()
     daox.init_dao {
@@ -119,6 +129,7 @@ end
 
 -- 升级表结构
 function _M:init_daos ()
+-- @return : void
 
     local args = ngx.req.get_uri_args()
 
@@ -131,19 +142,24 @@ function _M:init_daos ()
 end
 
 function _M:gen_api_code ()
+-- @return : void
     apix.gen_api_code(self.name)
 end
 
 function _M:gen_api_ts ()
+-- @return : void
     apix.gen_api_ts(self.name)
 end
 
 function _M:gen_api_js ()
+-- @return : void
     apix.gen_api_js(self.name)
 end
 
 -- 加载 dao 模块
 function _M:load_dao(mod_name, reload_mod)
+-- @mod_name   : string
+-- @reload_mod : boolean
 
     local mod
 
@@ -167,6 +183,9 @@ end
 
 -- 加载 act 模块
 function _M:load_act(mod_name, reload_mod)
+-- @mod_name   : string
+-- @reload_mod : boolean
+-- @return     : any
 
     if type(mod_name) ~= "string" or mod_name == "" then return end
     if _sub(mod_name, 1, 4) ~= "act." then mod_name = "act." .. mod_name end
@@ -177,6 +196,9 @@ end
 
 -- 加载模块
 function _M:load_mod(mod_name, reload_mod)
+-- @mod_name   : string
+-- @reload_mod : boolean
+-- @return     : any
 
     local mod
 

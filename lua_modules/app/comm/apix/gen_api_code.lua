@@ -5,6 +5,10 @@ local apix      = require "app.comm.apix"
 local _split    = require "ngx.re".split
 
 local function _err(api, codes, err)
+-- @api     : string
+-- @codes   : string
+-- @err     : string
+-- @return  : void
 
     ngx.say("")
     ngx.say("生成api参数校验函数代码失败：", api)
@@ -21,6 +25,8 @@ local function _err(api, codes, err)
 end
 
 local function print_html()
+-- @return : void
+
     ngx.header['content-type'] = "text/html"
     ngx.say [[
 <!DOCTYPE html>
@@ -66,6 +72,10 @@ local function print_html()
 end
 
 return function(app_name, base_name, api_name)
+-- @app_name  : string
+-- @base_name : string
+-- @api_name  : string
+-- @return    : void
 
     base_name = base_name or ngx.req.get_uri_args().base or ""
     api_name  = api_name  or ngx.req.get_uri_args().api  or nil

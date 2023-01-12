@@ -37,6 +37,10 @@ local html_err = [[
 ]]
 
 local function _response (res, html, action_type)
+-- @res         : any
+-- @html        : string
+-- @action_type : string
+-- @return      : void
 
     -- 无任何内容输出
     if res==nil then return end
@@ -68,6 +72,8 @@ end
 
 -- 通过调试代码创建模块 v18.10.21
 local function get_debug_mod(mod)
+-- @mod      : any
+-- @return   : any
 
     if ngx.req.get_method()=="POST" then
          -- 读取上传的代码
@@ -118,6 +124,9 @@ local APPX -- = require "app.comm.appx"
 
 -- 执行程序
 local function do_action (app_name, uri)
+-- @app_name : string
+-- @uri      : string
+-- @return   : void
 
     -- 延时加载 appx 避免相互应用
     if APPX == nil then APPX = require "app.comm.appx" end

@@ -11,12 +11,17 @@ local _encode   = cjson.encode
 local LAST_DROP_NONCE = ngx.now() * 1000
 
 local function echo(...)
+-- @return : void
     ngx.say(...)
     ngx.flush()
 end
 
 -- 创建表
 local function init_dao(app_name, dao_name, drop_nonce)
+-- @app_name   : string
+-- @dao_name   : string
+-- @drop_nonce : number
+-- @return     : void
 
     ngx.header['content-type'] = "text/plain"
 

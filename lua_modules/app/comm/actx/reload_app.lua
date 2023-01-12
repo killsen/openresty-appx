@@ -10,6 +10,9 @@ local exe_name  = require "app.comm.utils".exe_name     -- 获取扩展名
 
 --重启模块
 local function reload_file (modname)
+-- @modname : string
+-- @return  : void
+
     package.loaded [modname] = nil
     local ok, err = pcall(require, modname)
     if ok then
@@ -24,6 +27,9 @@ end
 
 --查询.lua文件
 local function reload_path(path, name)
+-- @path   : string
+-- @name   : string
+-- @return : void
 
     name = name or path
 
@@ -42,6 +48,8 @@ local function reload_path(path, name)
 end
 
 local function reload_app(app_name)
+-- @app_name : string
+-- @return   : void
 
     local app = require "app.comm.appx".new(app_name)
     if not app then return ngx.exit(404) end
