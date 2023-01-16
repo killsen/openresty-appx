@@ -26,7 +26,7 @@ ignore = {
 globals = {
     'ngx', 'ndk', '_load',
     'io.openx', 'openx', 'dofilex',
-    'table.pack', 'table.unpack', 'table.nkeys'
+    'table.pack', 'table.unpack', 'table.nkeys',
     'table.clone',
 }
 
