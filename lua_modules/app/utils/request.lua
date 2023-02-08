@@ -124,7 +124,8 @@ end
 
 -- 类型声明
 --- HttpPart   : { name: string, mime: string, type: string, body: string, data: string, file: string }
---- HttpOption : { url: string, method: string, body: string, headers: map<string>, parts: @HttpPart[], ssl_server_name: string }
+--- HttpOption : { url: string, method: string, body: string, query: string, headers: map<string> }
+--- HttpOption & { parts: @HttpPart[], ssl_server_name: string, ssl_verify: boolean }
 
 local function get_parts_body(parts)
 -- @parts : @HttpPart[]
