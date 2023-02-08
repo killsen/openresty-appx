@@ -122,7 +122,12 @@ local function _get_addr(host)
     return DNS_CACHE:get(host, nil, _get_addr_by_dns, host)
 end
 
+-- 类型声明
+--- HttpPart   : { name: string, mime: string, type: string, body: string, data: string, file: string }
+--- HttpOption : { url: string, method: string, body: string, headers: map<string>, parts: @HttpPart[], ssl_server_name: string }
+
 local function get_parts_body(parts)
+-- @parts : @HttpPart[]
 
     local body, i = {}, 0
 
@@ -156,9 +161,14 @@ local function get_parts_body(parts)
 end
 
 local function _request(url, opt)
+-- @url : @HttpOption   // 请求链接或参数
+-- @opt : @HttpOption   // 请求参数
 
     -- 如果第一个参数为table
     if type(url) == "table" then opt, url = url, url.url end
+
+    --- url : string        // 类型改为字符串
+    --- opt : @HttpOption
 
     -- 解析请求链接
     local  m, err = _parse_url(url)
