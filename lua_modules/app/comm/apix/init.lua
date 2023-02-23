@@ -82,7 +82,7 @@ __.new = function(t, path)
 
             if type(mod) == "table" then
                 if not gen_valid_func then
-                    gen_valid_func = require "app.comm.apix".gen_valid_code
+                    gen_valid_func = require "app.comm.apix".gen_valid_func
                 end
                 gen_valid_func(mod)
                 rawset(mod, "__filename", filename)
