@@ -52,7 +52,7 @@ local regy = [==[^\s*\<!\[CDATA\[([\s\S]*)\]\]\>\s*$]==]
 -- xml 字符串转成 table 对象
  __.from_xml = function (xml, root)
 -- @xml     : string
--- @root    : string
+-- @root    : string | boolean
 -- @return  : table
 
     if type(xml)~="string" or xml=="" then return nil end

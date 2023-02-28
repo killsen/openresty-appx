@@ -162,8 +162,8 @@ local function get_parts_body(parts)
 end
 
 local function _request(url, opt)
--- @url : @HttpOption   // 请求链接或参数
--- @opt : @HttpOption   // 请求参数
+-- @url : @HttpOption | string  // 请求链接或参数
+-- @opt : @HttpOption           // 请求参数
 
     -- 如果第一个参数为table
     if type(url) == "table" then opt, url = url, url.url end
