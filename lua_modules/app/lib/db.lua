@@ -179,6 +179,7 @@ function _M.unload()
 
     if ngx.ctx[_M] then
         for _, db in pairs(ngx.ctx[_M]) do
+            --- db : res<mysql:new>
 
             -- 未关闭事务处理的，自动回滚并关闭连接 v21.08.28
             if db.__trans then
@@ -283,7 +284,7 @@ local function _close()
     if not ngx.ctx[_M] then return end
 
     local  co = coroutine.running()
-    local  db = ngx.ctx[_M][co]
+    local  db = ngx.ctx[_M][co]  --> res<mysql:new>
     if not db then return end
 
         ngx.ctx[_M][co] = nil
@@ -404,7 +405,7 @@ _M.mquery = _mquery
 local function _read()
 
     local  co = coroutine.running()
-    local  db = ngx.ctx[_M] and ngx.ctx[_M][co]
+    local  db = ngx.ctx[_M] and ngx.ctx[_M][co]  --> res<mysql:new>
     if not db then return end
 
     local res, err, errcode, sqlstate = db:read_result()
