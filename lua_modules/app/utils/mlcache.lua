@@ -97,8 +97,15 @@ end
 
 --------------------------------------------------------------------------------
 
--- 构造函数
+--- CacheOption : { name?, shm?, shm_locks?, shm_miss? }
+--- CacheOption & { lru_size?: number, ttl?: number, neg_ttl?: number }
+--- CacheOption & { ipc_shm?: string, ipc?: table }
+
+-- 创建多级缓存对象
 local function _new(name, shm, opts)
+-- @name  ? : @CacheOption | string
+-- @shm   ? : @CacheOption | string
+-- @opts  ? : @CacheOption
 
     -- 第一个参数是对象
     if type(name) == "table" then
@@ -110,6 +117,9 @@ local function _new(name, shm, opts)
         local t = shm
         shm, opts = t.shm, t
     end
+
+    --- shm  : string
+    --- name : string
 
     -- 默认命名空间
     if type(name) ~= "string" or name == "" then
@@ -152,16 +162,19 @@ local function _new(name, shm, opts)
     local obj = {};  OBJ_MAP[name] = obj  -- 对象索引（按名称）
     ----------------------------------------------------------------------------
 
-        -->> { new, purge, get, load, del, set }
+        -- 创建多级缓存对象
         obj.new = _new
 
-        -->> ok, err
+        -- 清除缓存
         obj.purge = function ()
+        -- @return : ok?: boolean, err?: string
             _purge(shm, opts.shm_miss)
         end
 
-        -->> val, err, hit_level
+        -- 读取缓存
         obj.get = function (key, fun, ...)
+        -- @key     : string
+        -- @return  : val?: res<fun>, err?: string, hit_level?: number
 
             key = _lower(key) -- 统一小写 v22.03.24
 
@@ -178,8 +191,11 @@ local function _new(name, shm, opts)
 
         end
 
-        -->> val, err, hit_level
+        -- 加载缓存
         obj.load = function (key, fun, ttl)
+        -- @key     : string
+        -- @ttl   ? : number
+        -- @return  : val?: res<fun>, err?: string, hit_level?: number
 
             key = _lower(key) -- 统一小写 v22.03.24
 
@@ -190,22 +206,31 @@ local function _new(name, shm, opts)
 
         end
 
-        -->> ok, err
+        -- 删除缓存
         obj.del = function (key)
+        -- @key : string
+        -- @return  : ok?: boolean, err?: string
             key = _lower(key) -- 统一小写 v22.03.24
             return cache:delete(key)
         end
 
-        -->> ok, err
+        -- 修改缓存
         obj.set = function (key, val, ttl)
+        -- @key     : string
+        -- @val     : any
+        -- @ttl   ? : number
+        -- @return  : ok?: boolean, err?: string
             key = _lower(key) -- 统一小写 v22.03.24
             return cache:set(key, {ttl=ttl}, val)
         end
 
     ----------------------------------------------------------------------------
     return setmetatable(obj, {
-        __call = function (_, ...)
-            return _new(...)
+        __call = function (_, name_, shm_, opts_)
+            -- @name_ ? : @CacheOption | string
+            -- @shm_  ? : @CacheOption | string
+            -- @opts_ ? : @CacheOption
+            return _new(name_, shm_, opts_)
         end
     })
 
