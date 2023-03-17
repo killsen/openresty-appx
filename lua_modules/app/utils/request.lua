@@ -19,7 +19,7 @@ local DNS_CACHE  = mlcache.new("DNS_CACHE", "my_dns", {
 })
 
 -- 域名服务器
-local NAME_SERVERS = {
+local NAME_SERVERS = {  --> string[]
         "119.29.29.29",     -- 腾讯
         "223.5.5.5",        -- 阿里
         "180.76.76.76",     -- 百度
@@ -32,6 +32,8 @@ local URL_REGEX  = [[^(?:(http[s]?):)?//((?:[^\[\]:/\?]+)|(?:\[.+\]))(?::(\d+))?
 
 -- 解析请求链接
 local function _parse_url(url)
+-- @url     : string
+-- @return  : { scheme, host, port, path }
 
     if type(url) ~= "string" then return nil, "url is null" end
 
@@ -63,19 +65,26 @@ end
 
 -- 是否IP地址
 local function _is_addr(host)
-    return _find(host, [[\d+?\.\d+?\.\d+?\.\d+$]], "jo")
+-- @host    : string
+-- @return  : boolean
+    local res = _find(host, [[\d+?\.\d+?\.\d+?\.\d+$]], "jo")
+    return res and true or false
 end
 
 -- 延时2秒返回错误信息
 local function _err(err)
+-- @err : string
     ngx.sleep(2)
     return nil, err
 end
 
 -- 取得IP地址（子线程）
 local function _get_addr_thread(server, host)
+-- @server  : string
+-- @host    : string
+-- @return  : ip?: string, err?: string
 
-    local res, err  = resolver:new{
+    local res, err  = resolver:new {
             nameservers = { server }    -- DNS服务器
         ,   retrans     = 5             -- 5次重发
         ,   timeout     = 2000          -- 2秒超时
@@ -83,7 +92,7 @@ local function _get_addr_thread(server, host)
 
     if not res then return _err(err) end
 
-    local answers, err = res:query(host, {qtype = res.TYPE_A})
+    local answers, err = res:query(host, { qtype = res.TYPE_A })
     if not answers then return _err(err) end
 
     if answers.errcode then return _err(answers.errstr) end
@@ -98,6 +107,8 @@ end
 
 -- 取得IP地址（多线程）
 local function _get_addr_by_dns(host)
+-- @host    : string
+-- @return  : ip?: string, err?: string
 
     local t = {}
 
@@ -117,18 +128,23 @@ local function _get_addr_by_dns(host)
 
 end
 
+-- 取得IP地址
 local function _get_addr(host)
+-- @host    : string
+-- @return  : ip?: string, err?: string
     if host == "localhost" then return "127.0.0.1" end
     return DNS_CACHE:get(host, nil, _get_addr_by_dns, host)
 end
 
 -- 类型声明
---- HttpPart   : { name: string, mime: string, type: string, body: string, data: string, file: string }
---- HttpOption : { url: string, method: string, body: string, query: string, headers: map<string> }
---- HttpOption & { parts: @HttpPart[], ssl_server_name: string, ssl_verify: boolean }
+--- HttpPart    : { name, mime?, type?, body?, data?, file? }
+--- HttpOption  : { url?, method?, body?, query?, headers?: map<string> }
+--- HttpOption  & { parts?: @HttpPart[], ssl_server_name?, ssl_verify?: boolean }
+--- HttpRespons : { status: number, reason, headers: map<string>, has_body: boolean, body }
 
 local function get_parts_body(parts)
--- @parts : @HttpPart[]
+-- @parts   : @HttpPart[]
+-- @return  : body: string, boundary: string
 
     local body, i = {}, 0
 
@@ -161,9 +177,11 @@ local function get_parts_body(parts)
 
 end
 
+-- Http请求
 local function _request(url, opt)
--- @url : @HttpOption | string  // 请求链接或参数
--- @opt : @HttpOption           // 请求参数
+-- @url     : @HttpOption | string      // 请求链接或参数
+-- @opt   ? : @HttpOption               // 请求参数
+-- @return  : res?: @HttpRespons, err?: string
 
     -- 如果第一个参数为table
     if type(url) == "table" then opt, url = url, url.url end
@@ -216,6 +234,5 @@ local function _request(url, opt)
     return httpc:request_uri(url, opt)
 
 end
-
 
 return _request
