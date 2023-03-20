@@ -3,13 +3,10 @@ local _concat = table.concat
 local _find   = ngx.re.find
 local _sub    = string.sub
 
-local __ = { _VERSION = "v1.0.0" }
+local __ = { _VERSION = "v23.03.20" }
 
 __._README = [==[
-# app.utils.xml
-
 一个非常简单的 xml 与 table 转换的工具
-
 ```lua
 local utils = require "app.utils"
 local obj   = utils.xml.from_xml(xml)   -- xml 转成 table
@@ -50,9 +47,9 @@ local regx = [==[\<(\w+)\>([\s\S]*)\</\1\>]==]
 local regy = [==[^\s*\<!\[CDATA\[([\s\S]*)\]\]\>\s*$]==]
 
 -- xml 字符串转成 table 对象
- __.from_xml = function (xml, root)
+__.from_xml = function (xml, root)
 -- @xml     : string
--- @root    : string | boolean
+-- @root  ? : string | boolean
 -- @return  : table
 
     if type(xml)~="string" or xml=="" then return nil end
@@ -80,6 +77,8 @@ local regy = [==[^\s*\<!\[CDATA\[([\s\S]*)\]\]\>\s*$]==]
 end
 
 local function get_key (key)
+-- @val     : string
+-- @return  : string
 
     local  from = _find(key, "(\\s+)", "jo")    -- 出现第一个空格（xml的属性）
     return from and _sub(key, 1, from-1) or key
@@ -87,6 +86,8 @@ local function get_key (key)
 end
 
 local function get_val (val)
+-- @val     : any
+-- @return  : string
 
     if type(val) ~= "string" then
         return tostring(val)
@@ -103,7 +104,7 @@ end
 -- table 对象转成 xml 字符串
 __.to_xml = function (obj, root)
 -- @obj     : table
--- @root    : string
+-- @root  ? : string
 -- @return  : string
 
     root = root or "xml"
