@@ -174,6 +174,7 @@ local function _new(name, shm, opts)
         -- 读取缓存
         obj.get = function (key, fun, ...)
         -- @key     : string
+        -- @fun   ? : function*
         -- @return  : val?: res<fun>, err?: string, hit_level?: number
 
             key = _lower(key) -- 统一小写 v22.03.24
@@ -194,6 +195,7 @@ local function _new(name, shm, opts)
         -- 加载缓存
         obj.load = function (key, fun, ttl)
         -- @key     : string
+        -- @fun     : function*
         -- @ttl   ? : number
         -- @return  : val?: res<fun>, err?: string, hit_level?: number
 
@@ -208,7 +210,7 @@ local function _new(name, shm, opts)
 
         -- 删除缓存
         obj.del = function (key)
-        -- @key : string
+        -- @key     : string
         -- @return  : ok?: boolean, err?: string
             key = _lower(key) -- 统一小写 v22.03.24
             return cache:delete(key)
