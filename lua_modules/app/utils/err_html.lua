@@ -18,7 +18,7 @@ local err_html = [[
         <div class="inner">
             <span class="msg_icon_wrp"><i class="icon80_smile"></i></span>
             <div class="msg_content">
-                <h4>{{message}}</h4>
+                <h4>{* message *}</h4>
             </div>
         </div>
     </div>
