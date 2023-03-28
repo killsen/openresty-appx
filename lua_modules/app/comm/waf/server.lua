@@ -31,21 +31,28 @@ dict:add("waf/server/index", 1)
 
 ----------------------------------------------------------------------------------------------------
 
-local servers_tm    = {}    -- 全部服务器列表
-local servers_up    = {}    -- 上游服务器列表
-local servers_bk    = {}    -- 备用服务器列表
-local server_map    = {}    -- 使用 ip:port 做 key
+--- TServer : { ip: string, port: number }
+--- TServer & { down: number, backup: number, weight: number }
 
+local servers_tm    = {}    --- servers_tm : @TServer[]     // 全部服务器列表
+local servers_up    = {}    --- servers_up : @TServer[]     // 上游服务器列表
+local servers_bk    = {}    --- servers_bk : @TServer[]     // 备用服务器列表
+local server_map    = {}    --- server_map : map<@TServer>  // 使用 ip:port 做 key
+
+local only_one_server       --- only_one_server : @TServer  // 只有一台服务器或者只有一台在线
 local robin_up, robin_bk    -- 一致性哈希
 local chash_up, chash_bk    -- 轮询调度
-local only_one_server       -- 只有一台服务器或者只有一台在线
 
 ----------------------------------------------------------------------------------------------------
 
 -- 按ip地址、port端口排序
 local function sort_servers(servers)
+-- @servers : @TServer[]
+-- @return  : void
 
     _sort(servers, function(a, b)
+        -- @a : @TServer
+        -- @b : @TServer
         if a.ip == b.ip then
             return a.port < b.port
         else
@@ -57,8 +64,9 @@ end
 
 -- 读取json文件
 local function load_json()
+-- @return : @TServer
 
-    local list
+    local list  --- list : @TServer[]
 
     local file = _openx("logs/server.json", "rb")
 
@@ -88,12 +96,13 @@ end
 
 -- 初始化服务器列表
 local function init_servers(servers)
+-- @servers : @TServer[]
 
     _clear(server_map)
     _clear(servers_up)
     _clear(servers_bk)
 
-    local servers_online = {}
+    local servers_online = {}  --> @TServer[]
     local nodes_up, nodes_bk = {}, {}
 
     for _, s in ipairs(servers) do
@@ -145,6 +154,7 @@ end
 
 -- 加载服务器列表
 local function load_servers()
+-- @return  : @TServer[]
 
     local curr_index = dict:get("waf/server/index")
     curr_index = tonumber(curr_index) or 0
@@ -164,6 +174,7 @@ load_servers()  --【自动加载服务器列表】-----------------------------
 
 -- 克隆服务器列表
 local function clone_servers()
+-- @return  : @TServer[]
 
     local servers = load_servers()
 
@@ -179,11 +190,14 @@ end
 
 -- 通知服务器监控更新数据
 local function update_index()
+-- @return : void
     waf.status.update_index()
 end
 
 -- 保存服务器列表
 local function save_servers(servers)
+-- @servers : @TServer[]
+-- @return  : void
 
     if type(servers) ~= "table" then return end
 

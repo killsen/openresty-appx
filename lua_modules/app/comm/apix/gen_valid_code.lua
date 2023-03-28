@@ -453,9 +453,10 @@ local function gen_valid_code(types, args, extends)
 
 end
 
+-- 生成验参代码
 return function(mod)
--- @mod    : any
--- @return : void
+-- @mod    : table
+-- @return : string
 
     if type(mod) ~= "table" then return end
 

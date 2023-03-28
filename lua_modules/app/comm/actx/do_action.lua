@@ -124,9 +124,9 @@ local APPX -- = require "app.comm.appx"
 
 -- 执行程序
 local function do_action (app_name, uri)
--- @app_name : string
--- @uri      : string
--- @return   : void
+-- @app_name    : string
+-- @uri       ? : string
+-- @return      : void
 
     -- 延时加载 appx 避免相互应用
     if APPX == nil then APPX = require "app.comm.appx" end

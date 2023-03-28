@@ -91,7 +91,7 @@ end
 
 local function init_apis(api, level)
 -- @api       : table
--- @level     : number
+-- @level   ? : number
 -- @return    : void
 
     level = tonumber(level) or 0
@@ -119,11 +119,11 @@ local function init_apis(api, level)
 end
 
 local function load_apis(apis, base_api, base_name, level)
--- @api       : table
--- @base_api  : table
--- @base_name : name
--- @level     : number
--- @return    : void
+-- @api         : table
+-- @base_api    : table
+-- @base_name   : string
+-- @level     ? : number
+-- @return      : void
 
     level = tonumber(level) or 0
     if level > MAX_LEVEL then return end
@@ -144,9 +144,10 @@ local function load_apis(apis, base_api, base_name, level)
 
 end
 
+-- 加载 api 列表
 return function(app_name, base_name)
--- @app_name  : string
--- @base_name : string
+-- @app_name    : string
+-- @base_name ? : string
 
     local app = require "app.comm.appx".new(app_name)
     if not app then return end

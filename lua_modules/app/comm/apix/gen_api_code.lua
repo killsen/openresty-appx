@@ -71,11 +71,12 @@ local function print_html()
 ]]
 end
 
+-- 生成 api 验参代码
 return function(app_name, base_name, api_name)
--- @app_name  : string
--- @base_name : string
--- @api_name  : string
--- @return    : void
+-- @app_name    : string
+-- @base_name ? : string
+-- @api_name  ? : string
+-- @return      : void
 
     base_name = base_name or ngx.req.get_uri_args().base or ""
     api_name  = api_name  or ngx.req.get_uri_args().api  or nil

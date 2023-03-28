@@ -23,7 +23,7 @@ end
 do
     local ffi = require "ffi"
     local ffi_load = ffi.load
-      ffi.ffi_load = ffi_load
+    ffi["ffi_load"] = ffi_load
 
     local io_open  = io.open
     local io_close = io.close
@@ -60,7 +60,7 @@ end
 
 do
     local io_open = io.open
-    _G.openx = function(filename, mode)
+    _G["openx"] = function(filename, mode)
         return io_open(prefix .. filename, mode)
     end
     rawset(io, "openx", _G.openx)
@@ -68,7 +68,7 @@ end
 
 do
     local dofile = dofile
-    _G.dofilex = function(filename)
+    _G["dofilex"] = function(filename)
         return dofile(prefix .. filename)
     end
 end
@@ -96,7 +96,7 @@ end
 
 do
     local lfs_dir = lfs.dir
-    lfs.lfs_dir = lfs_dir
+    lfs["lfs_dir"] = lfs_dir
     lfs.dir = function(filepath)
         local path = check_path(filepath)
         if not path then
@@ -115,7 +115,7 @@ end
 
 do
     local lfs_mkdir = lfs.mkdir
-    lfs.lfs_mkdir = lfs_mkdir
+    lfs["lfs_mkdir"] = lfs_mkdir
     lfs.mkdir = function(filepath)
         local  path, err = check_path(filepath)
         if not path then return nil, err end
@@ -128,7 +128,7 @@ end
 
 do
     local lfs_rmdir = lfs.rmdir
-    lfs.lfs_rmdir = lfs_rmdir
+    lfs["lfs_rmdir"] = lfs_rmdir
     lfs.rmdir = function(filepath)
         local  path, err = check_path(filepath)
         if not path then return nil, err end
@@ -141,7 +141,7 @@ end
 
 do
     local lfs_attributes = lfs.attributes
-    lfs.lfs_attributes = lfs_attributes
+    lfs["lfs_attributes"] = lfs_attributes
     lfs.attributes = function(filepath, aname)
         local  path, err = check_path(filepath)
         if not path then return nil, err end

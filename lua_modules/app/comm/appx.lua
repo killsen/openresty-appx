@@ -158,8 +158,8 @@ end
 
 -- 加载 dao 模块
 function _M:load_dao(mod_name, reload_mod)
--- @mod_name   : string
--- @reload_mod : boolean
+-- @mod_name    : string
+-- @reload_mod? : boolean
 
     local mod
 
@@ -183,9 +183,9 @@ end
 
 -- 加载 act 模块
 function _M:load_act(mod_name, reload_mod)
--- @mod_name   : string
--- @reload_mod : boolean
--- @return     : any
+-- @mod_name    : string
+-- @reload_mod? : boolean
+-- @return      : any
 
     if type(mod_name) ~= "string" or mod_name == "" then return end
     if _sub(mod_name, 1, 4) ~= "act." then mod_name = "act." .. mod_name end
@@ -196,9 +196,9 @@ end
 
 -- 加载模块
 function _M:load_mod(mod_name, reload_mod)
--- @mod_name   : string
--- @reload_mod : boolean
--- @return     : any
+-- @mod_name    : string
+-- @reload_mod? : boolean
+-- @return      : any
 
     local mod
 

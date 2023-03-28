@@ -16,6 +16,7 @@ local NAMEX = {
     ["class" ] = "class$",
 }
 
+-- JavaScript 的保留字转换
 __.get_namex = function(name)
 -- @name    : string
 -- @return  : string
@@ -55,9 +56,10 @@ __.load_path = function(list, path, name)
 
 end
 
--- 取得 key 列表及最大长度
+-- 取得值为 function 类型的 key 列表及最大长度
 __.get_fun_keys = function(mod)
--- @mod : table
+-- @mod     : table
+-- @return  : keys: string[], max_len: number
 
     local keys, max_len = {}, 0
 
@@ -76,9 +78,10 @@ __.get_fun_keys = function(mod)
 
 end
 
--- 取得 key 列表及最大长度
+-- 取得值为 table 类型的 key 列表及最大长度
 __.get_tbl_keys = function(mod)
--- @mod : table
+-- @mod     : table
+-- @return  : keys: string[], max_len: number
 
     local keys, max_len = {}, 0
 
@@ -130,6 +133,7 @@ __.sort_pairs = function(t)
 
 end
 
+-- 加载 api 模块
 __.load_api_mod = function(api_root, api_name)
 -- @api_root : table
 -- @api_name : string

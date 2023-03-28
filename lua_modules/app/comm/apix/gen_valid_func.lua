@@ -27,6 +27,7 @@ end
 
 local gen_valid_code
 
+-- 生成验参函数
 return function (mod)
 -- @mod    : table
 -- @return : void

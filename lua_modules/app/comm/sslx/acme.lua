@@ -57,9 +57,10 @@ _T.Authorization = {
     identifier      = "@Identifier      //验证标识",
 }
 
-
+-- base64转码
 local function _base64(s)
--- @return : string
+-- @s       : string | table
+-- @return  : string
 
     if type(s) == "table"  then s = cjson.encode(s) end
     if type(s) ~= "string" then return "" end
@@ -68,8 +69,10 @@ local function _base64(s)
 
 end
 
+-- 读文件
 local function read_file(filename)
--- @return : string
+-- @filename    : string
+-- @return      : string
 
     local file = io.open(filename, "rb")
     if not file then return end
@@ -79,20 +82,25 @@ local function read_file(filename)
 
 end
 
+-- 写文件
 local function write_file(filename, data)
--- @return : boolean
+-- @filename    : string
+-- @data        : string
+-- @return      : boolean
 
     local file = io.open(filename, "wb+")
     if not file then return end
 
     local ok, err = file:write(data); file:close()
-    return ok, err
+    if not ok then return nil, err end
 
+    return true
 end
 
-
+-- 生成 pkey.pem 文件
 local function create_pkey_pem(file)
--- @return : string
+-- @file    : string
+-- @return  : string
 
     local data = read_file(file)
 
@@ -224,7 +232,10 @@ end
 
 -- POST请求
 function __:post(url, payload, use_account_jwk)
--- @return : string | table
+-- @url               ? : string
+-- @payload           ? : string | table
+-- @use_account_jwk   ? : boolean
+-- @return              : res?: any, err?: string
 
     local nonce, err
 
@@ -365,7 +376,8 @@ end
 
 -- 订单查询
 function __:query_order(order_url)
--- @return : @Order
+-- @order_url   : string
+-- @return      : @Order
 
     local  ok, err = self:init()
     if not ok then return nil, err end
@@ -384,7 +396,8 @@ end
 
 -- 查询验证链接
 function __:query_authz(authz_url)
--- @return : @Authorization
+-- @authz_url   : string
+-- @return      : @Authorization
 
     local  ok, err = self:init()
     if not ok then return nil, err end
@@ -395,7 +408,8 @@ end
 
 -- 挑战验证链接
 function __:challenge_authz(authz_url)
--- @return : @Authorization
+-- @authz_url   : string
+-- @return      : @Authorization
 
     local  authz, err = self:query_authz(authz_url)
     if not authz then return nil, err end
@@ -414,7 +428,8 @@ end
 
 -- 生成 jwk_token
 function __:gen_jwk_token(token)
--- @return : string
+-- @token   : string
+-- @return  : string
 
     local jwk = self.account_jwk_str
 
@@ -431,7 +446,8 @@ end
 
 -- 创建域名TXT记录
 function __:make_dns_record(authz_url)
--- @return : @Authorization
+-- @authz_url   : string
+-- @return      : @Authorization
 
     local  authz, err = self:query_authz(authz_url)
     if not authz then return nil, err end
@@ -462,7 +478,8 @@ end
 
 -- 删除域名TXT记录
 function __:remove_dns_record(authz_url)
--- @return : boolean
+-- @authz_url   : string
+-- @return      : boolean
 
     local  authz, err = self:query_authz(authz_url)
     if not authz then return nil, err end
@@ -486,7 +503,8 @@ end
 
 -- 提交证书签名申请
 function __:finalize_order(finalize_url)
--- @return : @Order
+-- @finalize_url    : string
+-- @return          : @Order
 
     local domain_pkey = self.domain_pkey
     local domain_list = self.domain_list
@@ -509,7 +527,8 @@ end
 
 -- 下载证书
 function __:download_certificate(certificate_url)
--- @return : string
+-- @certificate_url : string
+-- @return          : string
 
     local  ok, err = self:init()
     if not ok then return nil, err end
