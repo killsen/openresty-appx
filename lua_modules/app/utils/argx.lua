@@ -107,7 +107,7 @@ local function _valx(v, x)
     end
 
     for i=1, k do
-        local f, p, r = x[i], x[i+1], nil
+        local f, p, r = x[i], x[i+1]
 
             f = type(f) == "string" and _MAPX_[f] or f  --> "#"
             p = type(p) == "table"  and p or {}         --> {2, 8}

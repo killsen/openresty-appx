@@ -8,6 +8,9 @@ local LOCK_KEY = "#locker:"
 
 -- 加锁
 __.lock = function(key, timeout)
+-- @key         : string
+-- @timeout ?   : number
+-- @return      : lock?: res<Lock:new>, err?: string
 
     if type(key) ~= "string" or key == "" then
         return nil, "lock key is empty"
@@ -29,6 +32,8 @@ end
 
 -- 解锁
 __.unlock = function(lock)
+-- @lock    : res<Lock:new>
+-- @return  : ok?: boolean, err?: string
 
     if not lock then return true end
 
@@ -43,6 +48,7 @@ end
 
 -- 加锁运行
 __.run = function(key, timeout, fun, ...)
+-- @key     : string
 
     if type(key) ~= "string" or key == "" then
         return nil, "lock key is empty"

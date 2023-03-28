@@ -1,18 +1,15 @@
 
--- 维吾尔语，哈萨克语，柯尔克孜语基本区和扩展区转换函数类库
--- https://gitee.com/kerindax/UyghurCharUtils
-
--- Lua字符串和Lua正则
--- https://www.junmajinlong.com/lua/lua_str_regex/
-
--- Lua UTF8 库
--- https://github.com/starwing/luautf8
-
 local ngx   = ngx
 local utf8  = require "lua-utf8"
 local u     = utf8.escape
 
-local __ = { _VERSION = "v21.04.10 "}
+local __ = { _VERSION = "v23.03.28 " }
+
+__._README = [[
+* [维吾尔语，哈萨克语，柯尔克孜语基本区和扩展区转换函数类库](https://gitee.com/kerindax/UyghurCharUtils)
+* [Lua字符串和Lua正则](https://www.junmajinlong.com/lua/lua_str_regex/)
+* [Lua UTF8 库](https://github.com/starwing/luautf8)
+]]
 
 local BASIC = 1  -- 基本区形式  A
 local ALONE = 2  -- 单独形式    A
@@ -108,12 +105,17 @@ local symbolList = {
 
 -- 获取对应字母
 local function getChar(ch, index)
+-- @ch      : string
+-- @index   : number
+-- @return  : string
     local c = CHARS[ch]
     return c and c[index] or ch
 end
 
 -- Ascii区反转
 __.reverseAscii = function(source)
+-- @source  : string
+-- @return  : string
 
     local result = utf8.gsub(source, notExtendRang, function (word)
         word = utf8.reverse(word)
@@ -129,6 +131,8 @@ end
 
 -- 对象反转
 __.reverseSubject = function(source)
+-- @source  : string
+-- @return  : string
 
     local result = utf8.gsub(source, ".+", function (word)
         return utf8.reverse(word)
@@ -140,6 +144,8 @@ end
 
 -- 基本区 --转换-> 打印机（只反转维文）
 __.basic2Printer = function(source)
+-- @source  : string
+-- @return  : string
 
     local result = __.basic2Extend(source)
 
@@ -159,6 +165,8 @@ end
 
 -- 基本区 --转换-> 扩展区
 __.basic2Extend = function(source)
+-- @source  : string
+-- @return  : string
 
     return utf8.gsub(source, convertRang, function(word)
 
@@ -191,6 +199,8 @@ end
 
 -- 扩展区 --转换-> 基本区
 __.extend2Basic = function(source)
+-- @source  : string
+-- @return  : string
 
     for _, sp in ipairs(SPECIAL) do
         source = utf8.gsub(source, sp.extend, sp.basic)
@@ -204,6 +214,8 @@ end
 
 -- 基本区 --转换-> 反向扩展区
 __.basic2RExtend = function(source)
+-- @source  : string
+-- @return  : string
 
     local result = __.basic2Extend(source)
           result = __.reverseSubject(result)
@@ -214,6 +226,8 @@ end
 
 -- 反向扩展区 --转换-> 基本区
 __.rextend2Basic = function(source)
+-- @source  : string
+-- @return  : string
 
     local result = __.reverseAscii(source)
           result = __.reverseSubject(result)
@@ -223,7 +237,7 @@ __.rextend2Basic = function(source)
 end
 
 -- 测试
-__.test = function ()
+__._TESTING = function ()
 
     ngx.header["content-type"] = "text/plain"
 

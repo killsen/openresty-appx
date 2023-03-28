@@ -28,6 +28,7 @@ local err_html = [[
 
 -- 输出错误信息
 return function (message)
+-- @message : string
 
     if type(message) ~= "string" or message == "" then
         message = "未知错误"
