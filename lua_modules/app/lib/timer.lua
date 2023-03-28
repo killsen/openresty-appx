@@ -1,7 +1,10 @@
 
+local _G            = _G
+local ngx           = ngx
 local timer_at      = ngx.timer.at
 local timer_every   = ngx.timer.every
 local pcall         = pcall
+local rawget        = rawget
 
 local __ = { _VERSION = "v23.03.28" }
 
@@ -19,7 +22,7 @@ __.at = function(delay, callback, ...)
 -- @return      : hdl?: number, err?: string
 
     local app_name   = ngx.ctx.app_name   -- 原环境
-    local _unload    = _load
+    local _unload    = app_name and rawget(_G, "_unload")  --> function
     local is_running = false
 
     local hdl, err = timer_at(delay, function(premature, ...)
@@ -34,8 +37,8 @@ __.at = function(delay, callback, ...)
             local  ok, err = pcall(callback, ...)
             if not ok then ngx.log(ngx.ERR, "timer.at callback error: \n", err) end
 
-            -- 清理相关资源（调用 app.unload）
-            if app_name and type(_unload) == "function" then pcall(_unload) end
+            -- 清理相关资源（调用 app:unload）
+            if type(_unload) == "function" then pcall(_unload) end
 
             is_running = false
 
@@ -56,7 +59,7 @@ __.every = function(delay, callback, ...)
 -- @return      : hdl?: number, err?: string
 
     local app_name   = ngx.ctx.app_name   -- 原环境
-    local _unload    = _load
+    local _unload    = app_name and rawget(_G, "_unload")  --> function
     local is_running = false
 
     local hdl, err = timer_every(delay, function(premature, ...)
@@ -71,8 +74,8 @@ __.every = function(delay, callback, ...)
             local  ok, err = pcall(callback, ...)
             if not ok then ngx.log(ngx.ERR, "timer.every callback error: \n", err) end
 
-            -- 清理相关资源（调用 app.unload）
-            if app_name and type(_unload) == "function" then pcall(_unload) end
+            -- 清理相关资源（调用 app:unload）
+            if type(_unload) == "function" then pcall(_unload) end
 
             is_running = false
 
