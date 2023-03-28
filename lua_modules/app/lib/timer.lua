@@ -86,4 +86,33 @@ __.every = function(delay, callback, ...)
 
 end
 
+-- 测试
+__._TESTING = function()
+
+    local function run_in_timer(abc, xyz)
+    -- @abc : string
+    -- @xyz : number
+        ngx.sleep(1)
+        ngx.log(ngx.ERR, "abc: ", abc)
+        ngx.sleep(1)
+        ngx.log(ngx.ERR, "xyz: ", xyz)
+        ngx.sleep(1)
+    end
+
+    ngx.say("running: ", __.running_count())
+    ngx.say("pending: ", __.pending_count())
+    ngx.flush()
+
+    local hdl, err = __.at(1, run_in_timer, "abc", 123)
+    ngx.say("hdl: ", hdl, ", err: ", err)
+
+    for _ = 1, 5 do
+        ngx.say("running: ", __.running_count())
+        ngx.say("pending: ", __.pending_count())
+        ngx.flush()
+        ngx.sleep(1)
+    end
+
+end
+
 return __
