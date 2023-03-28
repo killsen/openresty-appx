@@ -3,6 +3,7 @@ local waf           = require "app.comm.waf"
 local ngx_var       = ngx.var
 local waf_status    = ngx.shared.waf_status
 local _encode       = require "cjson.safe".encode
+local tonumber      = tonumber
 
 ------------------------------------------------------
 local __ = {}
@@ -78,9 +79,9 @@ function __.log()
     elseif n < 500 then waf_status:incr( key .. KEY_4XX , 1, 0 )
     else                waf_status:incr( key .. KEY_5XX , 1, 0 ) end
 
-    waf_status:incr( key .. KEY_READ  , ngx_var.request_length , 0 )
-    waf_status:incr( key .. KEY_WRITE , ngx_var.bytes_sent     , 0 )
-    waf_status:incr( key .. KEY_TIME  , ngx_var.request_time   , 0 )
+    waf_status:incr( key .. KEY_READ  , tonumber(ngx_var.request_length) , 0 )
+    waf_status:incr( key .. KEY_WRITE , tonumber(ngx_var.bytes_sent    ) , 0 )
+    waf_status:incr( key .. KEY_TIME  , tonumber(ngx_var.request_time  ) , 0 )
 
     __.update_index()
 
