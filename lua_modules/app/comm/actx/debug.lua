@@ -3,13 +3,14 @@ local __ = {}
 
 -- 获取调试文件或代码
 __.get_debug_file = function()
--- @return: string, string
+-- @return: file_name?: string, codes?: string
 
     -- 仅用于本机调试
-    if ngx.var.remote_addr ~= "127.0.0.1" or
-        ngx.var.http_user_agent ~= "sublime" then
-        return
-    end
+    if ngx.var.remote_addr ~= "127.0.0.1" then return end
+
+    -- 检查客户端
+    local ua = ngx.var.http_user_agent
+    if ua ~= "vscode" and ua ~= "sublime" then return end
 
     -- 程序名称
     local app_name = ngx.var.http_app_name
@@ -46,7 +47,8 @@ __.reload_appx = function()
         end
     end
 
-    return require "app.comm.appx"
+    local appx = require "app.comm.appx"
+    return appx
 
 end
 
@@ -58,43 +60,44 @@ __.do_debug_file = function(file_name, codes)
 
     if not file_name then return end
 
-    local pok, func
+    local fun, err, pok, obj
 
     if codes then
-        pok, func = pcall(loadstring, codes)
+        fun, err = loadstring(codes)                -- 加载代码
     else
-        pok, func = pcall(loadfile, file_name)
+        fun, err = loadfile(file_name)              -- 加载文件
+    end
+    if not fun then return ngx.print(err) end       -- 输出错误信息
+
+    local debuger = require "app.comm.debuger"
+
+    rawset(_G, "_PRINT_LOCAL_", debuger.debug)
+    rawset(_G, "_PRINT_VALUE_", debuger.watch)
+
+    pok, obj = pcall(fun)
+
+    rawset(_G, "_PRINT_LOCAL_", nil)
+    rawset(_G, "_PRINT_VALUE_", nil)
+
+    if not pok then return ngx.print(obj) end       -- 输出错误信息
+
+    if type(obj) == "table" then
+        local apix = require "app.comm.apix"
+        apix.gen_valid_func(obj)                    -- 生成验参函数
+
+        if type(obj._TESTING) == "function" then
+            pok, obj = pcall(obj._TESTING)          -- 运行测试代码
+        elseif type(obj.actx) == "function" then
+            pok, obj = pcall(obj.actx)              -- 运行操作代码
+        end
     end
 
-    if not pok then return ngx.say(func) end
+    if not pok then return ngx.print(obj) end       -- 输出错误信息
 
-    local  pok, mod = pcall(func)
-    if not pok then return ngx.say(mod) end
-
-    if type(mod) ~= "table" then return end
-
-    func = type(mod._TESTING) == "function" and mod._TESTING
-        or type(mod.actx) == "function" and mod.actx
-
-    if not func then return end
-
-    local apix = require "app.comm.apix"
-    apix.gen_valid_func(mod)
-
-    local pok, res = pcall(func)
-
-    if not pok then
-        ngx.header["content-type"] = "text/plain"
-        ngx.print(tostring(res))
-
-    elseif type(res) == "table" then
-        ngx.header["content-type"] = "text/json"
-        local encode = require "resty.prettycjson"
-        ngx.print(encode(res))
-
-    elseif res ~= nil then
-        ngx.header["content-type"] = "text/plain"
-        ngx.say(tostring(res))
+    if type(obj) == "string" then
+        ngx.print(obj)
+    elseif obj ~= nil then
+        debuger.print(obj)
     end
 
 end

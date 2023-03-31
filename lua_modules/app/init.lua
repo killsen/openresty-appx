@@ -77,7 +77,7 @@ __.main = function()
     local app  = appx.new(app_name)
     if not app then return ngx.exit(404) end
 
-    ngx.on_abort()  -- 开启客户端退出事件
+    ngx.on_abort(nil)  -- 开启客户端退出事件
 
     app:action(ngx.var.uri)
 

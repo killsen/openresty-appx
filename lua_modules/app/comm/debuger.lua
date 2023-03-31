@@ -244,4 +244,5 @@ return {
     ,   debug       = _debug
     ,   watch       = _watch
     ,   trace       = _trace
+    ,   print       = _print
 }
