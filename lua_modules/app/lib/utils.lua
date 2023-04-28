@@ -146,8 +146,8 @@ __.join = function(into_list, from_list, on_keys, join_keys, ...)
 
 end
 
-__.clone = _load "#clone"
-__.strip = _load "#str".strip
+__.clone = require "app.utils.clone"
+__.strip = require "app.utils.str".strip
 __.quote = ngx.quote_sql_str
 
 -- 清除名称中的空字符串
