@@ -1,18 +1,20 @@
 
-local waf     = require "app.comm.waf"
-local WS      = require "resty.websocket.server"
-local ngx_var = ngx.var
-local _concat = table.concat
-local _gsub   = string.gsub
-local _sub    = string.sub
-local _find   = string.find
+local ngx       = ngx
+local ngx_var   = ngx.var
+local waf       = require "app.comm.waf"
+local WS        = require "resty.websocket.server"
+local _concat   = table.concat
+local _gsub     = string.gsub
+local _sub      = string.sub
+local _find     = string.find
+local tonumber  = tonumber
 
-local dict_url = ngx.shared.waf_summary_url
-local dict_ip  = ngx.shared.waf_summary_ip
+local dict_url  = ngx.shared.waf_summary_url
+local dict_ip   = ngx.shared.waf_summary_ip
 
 ------------------------------------------------------
 local __ = {}
-__.ver   = "20.08.12"
+__.ver   = "23.04.28"
 __.name  = "服务器访问统计"
 ------------------------------------------------------
 
@@ -27,19 +29,23 @@ local KEY_TIME      = '8'
 -------------------------
 local KEY_COUNT     =  8
 
-
-function __.init()
-
+-- 初始化访问统计
+__.init = function()
+-- @return  : void
 end
 
-function __.reset()
-
+-- 清空访问统计
+__.reset = function()
+-- @return  : void
     dict_url:flush_all()
     dict_ip :flush_all()
-
 end
 
+-- 更新访问统计
 local function _log(dict, key)
+-- @dict    : ngx.shared[*]
+-- @key     : string
+-- @return  : void
 
     if not dict then return end
 
@@ -50,13 +56,15 @@ local function _log(dict, key)
     elseif n < 500 then dict:incr( key .. KEY_4XX , 1, 0 )
     else                dict:incr( key .. KEY_5XX , 1, 0 ) end
 
-    dict:incr( key .. KEY_READ  , ngx_var.request_length , 0 )
-    dict:incr( key .. KEY_WRITE , ngx_var.body_bytes_sent, 0 )
-    dict:incr( key .. KEY_TIME  , ngx_var.request_time   , 0 )
+    dict:incr( key .. KEY_READ  , tonumber(ngx_var.request_length ) , 0 )
+    dict:incr( key .. KEY_WRITE , tonumber(ngx_var.body_bytes_sent) , 0 )
+    dict:incr( key .. KEY_TIME  , tonumber(ngx_var.request_time   ) , 0 )
 
 end
 
-function __.log()
+-- 日志阶段调用
+__.log = function()
+-- @return : void
 
     if "off" == ngx_var.waf_log then return end
 
@@ -72,7 +80,9 @@ function __.log()
 
 end
 
-function __.get_head()
+-- 获取头信息
+__.get_head = function()
+-- @return : string
 
     local t, i = {}, 0;
 
@@ -90,7 +100,11 @@ function __.get_head()
 
 end
 
-function __.get_data(log, cb)
+-- 数据输出
+__.get_data = function(log, cb)
+-- @log     : string
+-- @cb      : function
+-- @return  : void
 
     -- 回调函数
     if type(cb)~="function" then return end
@@ -135,10 +149,26 @@ end
 
 --------------------------------------------------------------------------------
 
-local _html
+-- 输出网页
+local function _html(log)
+-- @log     : string
+-- @return  : void
+
+    local  html = waf.html("summary.html")
+    if not html then return ngx.exit(400) end
+
+    html = _gsub(html, "{{ my_head }}" , __.get_head()  )
+    html = _gsub(html, "{{ log_type }}", log:upper()    )
+    html = _gsub(html, "{{ app_ver }}" , ngx.now()*1000 )
+
+    ngx.header["content-type"] = "text/html; charset=utf-8"
+    ngx.print(html)
+
+end
 
 -- 启动监控
 __.start = function()
+-- @return : void
 
     local  args = ngx.req.get_uri_args()
     local  log  = args.log or "url"
@@ -163,21 +193,6 @@ __.start = function()
     __.get_data(log, _send)
 
     ws:send_close()
-
-end
-
--- 输出网页
-function _html(log)
-
-    local  html = waf.html("summary.html")
-    if not html then return ngx.exit(400) end
-
-    html = _gsub(html, "{{ my_head }}" , __.get_head()  )
-    html = _gsub(html, "{{ log_type }}", log:upper()    )
-    html = _gsub(html, "{{ app_ver }}" , ngx.now()*1000 )
-
-    ngx.header["content-type"] = "text/html; charset=utf-8"
-    ngx.print(html)
 
 end
 
