@@ -137,6 +137,7 @@ function _M:init_daos ()
         app_name    = self.name,
         add_column  = args.add_column  and true or false,
         drop_column = args.drop_column and true or false,
+        database    = args.database
     }
 
 end

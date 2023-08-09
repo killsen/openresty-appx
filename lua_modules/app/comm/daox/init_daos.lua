@@ -1,5 +1,5 @@
 
--- 初始化数据库 v20.08.19
+-- 初始化数据库 v23.08.09
 
 local file_list = require "app.comm.utils".file_list  -- lua文件列表
 local _quote    = ngx.quote_sql_str
@@ -11,9 +11,10 @@ local function echo(...)
 end
 
 -- 取得表结构
-local function get_columns(app_name, dao_name)
+local function get_columns(app_name, dao_name, database)
 -- @app_name    : string
 -- @dao_name    : string
+-- @database    : string
 -- @return      : { name, desc, def, type, key } []
 
     local app = require "app.comm.appx".new(app_name)
@@ -21,7 +22,7 @@ local function get_columns(app_name, dao_name)
 
     app.db.master = true -- 只使用主库 v20.08.09
 
-    local table_schema = dao.table_schema or app.db_config.database
+    local table_schema = dao.table_schema or database
     local table_name   = dao.table_name
 
     local sql = [[
@@ -55,12 +56,13 @@ order by ordinal_position
 end
 
 -- 升级表结构
-local function upgrade_table(app_name, dao_name, index, add_column, drop_column)
+local function upgrade_table(app_name, dao_name, index, add_column, drop_column, database)
 -- @app_name    : string
 -- @dao_name    : string
 -- @index       : number
 -- @add_column  : boolean
 -- @drop_column : boolean
+-- @database    : string
 -- @return      : boolean
 
     local app = require "app.comm.appx".new(app_name)
@@ -80,7 +82,7 @@ local function upgrade_table(app_name, dao_name, index, add_column, drop_column)
         return true
     end
 
-    local  cols, err = get_columns(app_name, dao_name)
+    local  cols, err = get_columns(app_name, dao_name, database)
     if not cols or #cols == 0 then
         echo("-- 读取表结构失败：", err)
         return
@@ -188,10 +190,11 @@ local function upgrade_table(app_name, dao_name, index, add_column, drop_column)
 
 end
 
-local function init_daos(app_name, add_column, drop_column)
+local function init_daos(app_name, add_column, drop_column, database)
 -- @app_name    : string
 -- @add_column  : boolean
 -- @drop_column : boolean
+-- @database  ? : string
 -- @return      : boolean
 
     ngx.header['content-type'] = "text/plain"
@@ -208,28 +211,30 @@ local function init_daos(app_name, add_column, drop_column)
     end
 
     app_name = app.name
+    database = database or app.db_config.database
 
-    local url = "http://" .. ngx.var.http_host .. "/" .. app_name .. "/initdaos"
-
-    echo ""
-    echo("-- 只添加新增列: ", url, "?add_column")
-    echo("-- 只删除多余列: ", url, "?drop_column")
-    echo("-- 添加及删除列: ", url, "?add_column&drop_column")
-    echo ""
-
-    if not app or not app.db_config or not app.db_config.database then
-        echo("-- 数据库未定义")
+    if not database then
+        echo "数据库未定义"
         return
     end
 
-    echo("-- 数据库名称：", app.db_config.database)
+    local url = "http://" .. ngx.var.http_host .. "/" .. app_name .. "/initdaos?database=" .. database
+
+    echo ""
+    echo("-- 只添加新增列: ", url, "&add_column")
+    echo("-- 只删除多余列: ", url, "&drop_column")
+    echo("-- 添加及删除列: ", url, "&add_column&drop_column")
+    echo ""
+
+    app.db.set_database(database)
+    echo("-- 数据库名称：", database)
 
     local files = file_list("app/" .. app_name .. "/dao/") or {}
     echo("-- dao 文件数：", #files)
     echo("")
 
     for index, dao_name in ipairs(files) do
-        local ok = upgrade_table(app_name, dao_name, index, add_column, drop_column)
+        local ok = upgrade_table(app_name, dao_name, index, add_column, drop_column, database)
         if not ok then return end
     end
 

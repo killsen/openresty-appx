@@ -22,12 +22,13 @@ __.init_daos__ = {
         { "app_name"    , "APP名称"                   },
         { "add_column?" , "是否要添加列"  , "boolean"  },
         { "drop_column?", "是否要删除列"  , "boolean"  },
+        { "database?"   , "数据库名称"                 },
     },
     res = "boolean"
 }
 __.init_daos = function(t)
     local init_daos = require "app.comm.daox.init_daos"
-    return init_daos(t.app_name, t.add_column, t.drop_column)
+    return init_daos(t.app_name, t.add_column, t.drop_column, t.database)
 end
 
 -- 生成API模块
