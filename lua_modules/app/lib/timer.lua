@@ -6,7 +6,7 @@ local timer_every   = ngx.timer.every
 local pcall         = pcall
 local rawget        = rawget
 
-local __ = { _VERSION = "v23.03.28" }
+local __ = { _VERSION = "v23.08.14" }
 
 __._README = [[
 [OpenResty定时器](https://github.com/iresty/nginx-lua-module-zh-wiki/blob/master/README.md#ngxtimerat)
@@ -21,7 +21,9 @@ __.at = function(delay, callback, ...)
 -- @callback    : function*
 -- @return      : hdl?: number, err?: string
 
-    local app_name   = ngx.ctx.app_name   -- 原环境
+    local app_name   = ngx.ctx["app_name"]   -- 原环境
+    local database   = ngx.ctx["DATABASE"]
+
     local _unload    = app_name and rawget(_G, "_unload")  --> function
     local is_running = false
 
@@ -32,7 +34,8 @@ __.at = function(delay, callback, ...)
         if is_running then return end   -- 运行中
            is_running = true
 
-        ngx.ctx.app_name = app_name     -- 新环境
+        ngx.ctx["app_name"] = app_name     -- 新环境
+        ngx.ctx["DATABASE"] = database
 
             local  ok, err = pcall(callback, ...)
             if not ok then ngx.log(ngx.ERR, "timer.at callback error: \n", err) end
@@ -58,7 +61,9 @@ __.every = function(delay, callback, ...)
 -- @callback    : function*
 -- @return      : hdl?: number, err?: string
 
-    local app_name   = ngx.ctx.app_name   -- 原环境
+    local app_name   = ngx.ctx["app_name"]   -- 原环境
+    local database   = ngx.ctx["DATABASE"]
+
     local _unload    = app_name and rawget(_G, "_unload")  --> function
     local is_running = false
 
@@ -69,7 +74,8 @@ __.every = function(delay, callback, ...)
         if is_running then return end   -- 运行中
            is_running = true
 
-        ngx.ctx.app_name = app_name     -- 新环境
+        ngx.ctx["app_name"] = app_name     -- 新环境
+        ngx.ctx["DATABASE"] = database
 
             local  ok, err = pcall(callback, ...)
             if not ok then ngx.log(ngx.ERR, "timer.every callback error: \n", err) end

@@ -33,7 +33,7 @@ local _clone    = require "table.clone"
 local _spawn    = ngx.thread.spawn
 local _wait     = ngx.thread.wait
 
-local _M = { _VERSION = '22.08.06' }
+local _M = { _VERSION = "v23.08.14" }
 local mt = {}
 
 --------------------------------------------------------------------------------
@@ -203,15 +203,14 @@ end
 --------------------------------------------------------------------------------
 
 -- 更换数据库 v22.08.06
-local DATABASE = {}
 function _M.set_database(database)
 
     _M.close()  -- 断开连接
 
     if type(database) == "string" and database ~= "" then
-        ngx.ctx[DATABASE] = database
+        ngx.ctx["DATABASE"] = database
     else
-        ngx.ctx[DATABASE] = nil
+        ngx.ctx["DATABASE"] = nil
     end
 
 end
@@ -259,7 +258,7 @@ local function _open(is_slave)
                            or DB_MASTER     -- 主库（读写）
 
     -- 更换数据库 v22.08.06
-    local database = ngx.ctx[DATABASE]
+    local database = ngx.ctx["DATABASE"]
     if database and database ~= conf.database then
         conf = _clone(conf)
         conf.database = database
