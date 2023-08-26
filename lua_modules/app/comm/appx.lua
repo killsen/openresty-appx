@@ -109,9 +109,10 @@ function _M:unload()
 end
 
 -- 运行程序
-function _M:action()
+function _M:action(uri)
+-- @uri ?  : string
 -- @return : void
-    actx.do_action(self.name)
+    actx.do_action(self.name, uri)
 end
 
 -- 重新建表

@@ -1,9 +1,10 @@
 
 -- 执行程序 v18.10.24 by Killsen ------------------
 
-local require        = require
-local templ          = require "resty.template"
-local cjson          = require "cjson.safe"
+local ngx           = ngx
+local require       = require
+local templ         = require "resty.template"
+local cjson         = require "cjson.safe"
 
 local _split        = require "app.comm.utils".split      -- 分隔字符串
 local file_name     = require "app.comm.utils".file_name  -- 获取文件名

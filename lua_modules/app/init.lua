@@ -46,6 +46,8 @@ __.help = function()
     local app  = appx.new(app_name)
     if not app then return ngx.exit(404) end
 
+    ngx.on_abort(nil)  -- 开启客户端退出事件
+
     if act_type ~= "api.d.ts" and act_type ~= "api.js" then
         local waf = require "app.comm.waf"
         if not waf.auth.check() then return end  -- 认证校验
@@ -61,6 +63,8 @@ __.help = function()
     else
         ngx.exit(404)
     end
+
+    app:unload()  -- 卸载程序
 
 end
 
@@ -80,6 +84,8 @@ __.main = function()
     ngx.on_abort(nil)  -- 开启客户端退出事件
 
     app:action(ngx.var.uri)
+
+    app:unload()  -- 卸载程序
 
 end
 
