@@ -6,11 +6,13 @@
 
 --------------------------------------------------------------------------------
 
+local ngx       = ngx
 local lfs       = require "lfs" -- LuaFileSystem
 local _sub      = string.sub
 local _match    = string.match
 local _find     = string.find
 local _len      = string.len
+local type      = type
 
 local __ = {}
 
@@ -131,6 +133,23 @@ __.split = function(str, sep)
     end
 
     return arr
+
+end
+
+-- 是否本机访问
+__.is_local = function()
+-- @return : boolean
+
+    if "127.0.0.1" ~= ngx.var.host        then return false end
+    if "127.0.0.1" ~= ngx.var.remote_addr then return false end
+
+    local x_forwarded_for = ngx.var.http_x_forwarded_for
+    if type(x_forwarded_for) == "string" then
+        -- 经过反向代理的不认为是本机访问
+        if x_forwarded_for ~= "" then return false end
+    end
+
+    return true
 
 end
 

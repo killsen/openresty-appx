@@ -4,6 +4,7 @@
 local require   = require
 local cjson     = require "cjson.safe"
 local _encode   = cjson.encode
+local is_local  = require "app.comm.utils".is_local   -- 是否本机访问
 
 ---------------------------------------------------
 
@@ -25,7 +26,7 @@ local function init_dao(app_name, dao_name, drop_nonce)
 
     ngx.header['content-type'] = "text/plain"
 
-    if "127.0.0.1" ~= ngx.var.remote_addr then
+    if not is_local() then
         echo "该操作只能在本机执行"
         return
     end

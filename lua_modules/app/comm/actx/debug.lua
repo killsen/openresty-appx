@@ -1,4 +1,6 @@
 
+local is_local = require "app.comm.utils".is_local   -- 是否本机访问
+
 local __ = {}
 
 -- 获取调试文件或代码
@@ -6,7 +8,7 @@ __.get_debug_file = function()
 -- @return: file_name?: string, codes?: string
 
     -- 仅用于本机调试
-    if ngx.var.remote_addr ~= "127.0.0.1" then return end
+    if not is_local() then return end
 
     -- 检查客户端
     local ua = ngx.var.http_user_agent

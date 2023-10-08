@@ -9,6 +9,7 @@ local cjson         = require "cjson.safe"
 local _split        = require "app.comm.utils".split      -- 分隔字符串
 local file_name     = require "app.comm.utils".file_name  -- 获取文件名
 local exe_name      = require "app.comm.utils".exe_name   -- 获取扩展名
+local is_local      = require "app.comm.utils".is_local   -- 是否本机访问
 
 --空表编码为array还是object v16.10.14
 cjson.encode_empty_table_as_object(false) -- 空表 >> []
@@ -148,9 +149,8 @@ local function do_action (app_name, uri)
         return
     end
 
-    -- 是否调试
-    local is_debug = ngx.var.remote_addr == "127.0.0.1" and
-                     ngx.var.http_user_agent == "sublime"
+    -- 是否本机调试
+    local is_debug = is_local() and ngx.var.http_user_agent == "sublime"
 
     local mod
 
@@ -166,15 +166,18 @@ local function do_action (app_name, uri)
     if type(mod) == "table" then
         actx = mod.actx
 
-        if mod.host then --检查IP地址
-        -- 如设定为 127.0.0.1      则表示只能本机访问
-        -- 如设定为 192.168.0.0/16 则表示局域网可访问
+        if mod.host then -- 检查IP地址
+            if mod.host == "127.0.0.1" then
+                -- 只能本机访问
+                if not is_local() then return ngx.exit(403) end
+            else
+                -- IP地址段检查: 如 192.168.0.0/16 则表示局域网可访问
+                mod._host_ip_list = mod._host_ip_list
+                or parse_cidrs ( type(mod.host)=="table" and mod.host or { mod.host } )
 
-            mod._host_ip_list = mod._host_ip_list
-              or parse_cidrs ( type(mod.host)=="table" and mod.host or { mod.host } )
-
-            if not binip_in_cidrs(ngx.var.binary_remote_addr, mod._host_ip_list) then
-                return ngx.exit(403) -- Forbidden （不在IP列表不允许访问）
+                if not binip_in_cidrs(ngx.var.binary_remote_addr, mod._host_ip_list) then
+                    return ngx.exit(403) -- Forbidden （不在IP列表不允许访问）
+                end
             end
         end
 

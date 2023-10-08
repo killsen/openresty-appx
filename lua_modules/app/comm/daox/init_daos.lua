@@ -1,6 +1,7 @@
 
 -- 初始化数据库 v23.08.09
 
+local is_local  = require "app.comm.utils".is_local   -- 是否本机访问
 local file_list = require "app.comm.utils".file_list  -- lua文件列表
 local _quote    = ngx.quote_sql_str
 
@@ -199,7 +200,7 @@ local function init_daos(app_name, add_column, drop_column, database)
 
     ngx.header['content-type'] = "text/plain"
 
-    if "127.0.0.1" ~= ngx.var.remote_addr then
+    if not is_local() then
         echo "该操作只能在本机执行"
         return
     end

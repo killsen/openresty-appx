@@ -2,6 +2,7 @@
 local waf               = require "app.comm.waf"
 local cjson             = require "cjson.safe"
 local session           = require "resty.session"
+local is_local          = require "app.comm.utils".is_local   -- 是否本机访问
 
 local __ = {}
 
@@ -19,7 +20,7 @@ end
 __.check = function()
 
     -- 本机访问无需认证
-    if ngx.var.remote_addr == "127.0.0.1" then return true end
+    if is_local() then return true end
 
     local waf_admin_uid = ngx.var.waf_admin_uid or "admin"
 
