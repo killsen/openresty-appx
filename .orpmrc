@@ -1,7 +1,7 @@
 ﻿{
     "name":  "openresty-appx",
     "description":  "基于 OpenResty 的高性能 Web 应用服务器框架",
-    "version":  "2.3.1",
+    "version":  "2.3.2",
     "license":  "MIT",
     "homepage":  "https://github.com/killsen/openresty-appx",
     "app_name":  "demo",
@@ -12,7 +12,7 @@
     "libs":  {
                  "killsen/openresty-clib":  "v2.0.2",
                  "killsen/lua-resty-ipdb-jit":  "v0.1.3",
-                 "killsen/lua-resty-otp":  "v1.0.0",
+                 "killsen/lua-resty-otp":  "v1.0.1",
                  "killsen/lua-resty-pinyin":  "v1.0.1",
                  "killsen/lua-resty-lz4":  "v1.0.0",
                  "killsen/lua-resty-qcloud":  "v1.0.0",
