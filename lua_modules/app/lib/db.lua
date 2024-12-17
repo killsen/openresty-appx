@@ -33,12 +33,12 @@ local _clone    = require "table.clone"
 local _spawn    = ngx.thread.spawn
 local _wait     = ngx.thread.wait
 
-local _M = { _VERSION = "v24.07.29" }
+local _M = { _VERSION = "v24.12.17" }
 local mt = {}
 
 --------------------------------------------------------------------------------
 local STATE_CONNECTED  = 1         -- 已连接
-local CONNECT_TIMEOUT  = 1000 * 30 -- 连接超时（30秒）
+local CONNECT_TIMEOUT  = 1000 * 60 -- 连接超时（60秒）
 local MAX_IDLE_TIMEOUT = 1000 * 60 -- 最大空闲时间（60秒）
 local POOL_SIZE        = 100       -- 连接池大小（100个）
 
