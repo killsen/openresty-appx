@@ -16,15 +16,20 @@ __.get_ocsp_resp = function (domain_name, cert_der)
 
     if not domain_name or not cert_der then return end
 
+    -- Ending OCSP Support in 2025
+    -- https://letsencrypt.org/2024/12/05/ending-ocsp
+    -- https://runbing.cc/archives/lets-encrypt-deprecates-ocsp.html
+    -- Let's Encrypt 新签发的证书不再包含 OCSP URL
+
     local ocsp_url, err = ocsp.get_ocsp_responder_from_der_chain(cert_der)
     if not ocsp_url then
-        ngx.log(ngx.ERR, "failed to get ocsp responder: ", err)
+        -- ngx.log(ngx.ERR, "failed to get ocsp responder: ", err)
         return
     end
 
     local ocsp_req, err = ocsp.create_ocsp_request(cert_der)
     if not ocsp_req then
-        ngx.log(ngx.ERR, "failed to create ocsp request: ", err)
+        -- ngx.log(ngx.ERR, "failed to create ocsp request: ", err)
         return
     end
 
