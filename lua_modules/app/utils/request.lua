@@ -1,154 +1,38 @@
 
-local resolver  = require "resty.dns.resolver"
+-- Http请求 v26.04.02
+
+local ngx       = ngx
+local type      = type
+local ipairs    = ipairs
+
 local http      = require "resty.http"
-local mlcache   = require "resty.mlcache"
 
+local _newt     = table.new
 local _concat   = table.concat
-local _match    = ngx.re.match
-local _find     = ngx.re.find
 
-local conn_timeout = 1000 * 10  -- 连接超时：10秒
-local send_timeout = 1000 * 90  -- 发送超时：90秒
-local read_timeout = 1000 * 90  -- 读取超时：90秒
-
--- 多级缓存
-local DNS_CACHE  = mlcache.new("DNS_CACHE", "my_dns", {
-        lru_size = 300      -- 本地缓存300条
-    ,   ttl      = 3600     -- 命中缓存1小时
-    ,   neg_ttl  = 5        -- 未命中缓存5秒
-})
-
--- 域名服务器
-local NAME_SERVERS = {  --> string[]
-        "119.29.29.29",     -- 腾讯
-        "223.5.5.5",        -- 阿里
-        "180.76.76.76",     -- 百度
---      "114.114.114.114",  -- 114
---      "8.8.8.8",          -- 谷歌
-}
+local conn_timeout = 1000 * 10  -- 连接超时 10 秒
+local send_timeout = 1000 * 90  -- 发送超时 90 秒
+local read_timeout = 1000 * 90  -- 读取超时 90 秒
 
 local USER_AGENT = [[Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36]]
-local URL_REGEX  = [[^(?:(http[s]?):)?//((?:[^\[\]:/\?]+)|(?:\[.+\]))(?::(\d+))?([^\?]*)\??(.*)]]
-
--- 解析请求链接
-local function _parse_url(url)
--- @url     : string
--- @return  : { scheme, host, port, path }
-
-    if type(url) ~= "string" then return nil, "url is null" end
-
-    local  m = _match(url, URL_REGEX, "jo")
-    if not m then return nil, "invalid url" end
-
-    local scheme, host, port, path, query = m[1], m[2], m[3], m[4], m[5]
-
-    scheme = scheme or "http"
-    port   = tonumber(port)
-
-    if not port then port = ""
-    elseif port == 80  and scheme == "http"  then port = ""
-    elseif port == 443 and scheme == "https" then port = ""
-    else   port = ":" .. port
-    end
-
-    if not path or path == "" then path = "/" end
-    if query and  query ~= "" then path = path .. "?" ..query end
-
-    return {
-        scheme  = scheme,  -- http 或 https
-        host    = host,    -- www.baidu.com 或 192.168.0.1
-        port    = port,    -- :8080 或 :88 或空
-        path    = path,    -- / 或 /a/b/c?p=1
-    }
-
-end
-
--- 是否IP地址
-local function _is_addr(host)
--- @host    : string
--- @return  : boolean
-    local res = _find(host, [[\d+?\.\d+?\.\d+?\.\d+$]], "jo")
-    return res and true or false
-end
-
--- 延时2秒返回错误信息
-local function _err(err)
--- @err : string
-    ngx.sleep(2)
-    return nil, err
-end
-
--- 取得IP地址（子线程）
-local function _get_addr_thread(server, host)
--- @server  : string
--- @host    : string
--- @return  : ip?: string, err?: string
-
-    local res, err  = resolver:new {
-            nameservers = { server }    -- DNS服务器
-        ,   retrans     = 5             -- 5次重发
-        ,   timeout     = 2000          -- 2秒超时
-    }
-
-    if not res then return _err(err) end
-
-    local answers, err = res:query(host, { qtype = res.TYPE_A })
-    if not answers then return _err(err) end
-
-    if answers.errcode then return _err(answers.errstr) end
-
-    for _, ans in ipairs(answers) do
-        if ans.address then return ans.address end
-    end
-
-    return _err("not founded")
-
-end
-
--- 取得IP地址（多线程）
-local function _get_addr_by_dns(host)
--- @host    : string
--- @return  : ip?: string, err?: string
-
-    local t = {}
-
-    for i, server in ipairs(NAME_SERVERS) do
-        t[i] = ngx.thread.spawn(_get_addr_thread, server, host)
-    end
-
-    local ok, res, err = ngx.thread.wait(unpack(t))
-
-    for _, co in ipairs(t) do
-        ngx.thread.kill(co)
-    end
-
-    if not ok then return nil, res end
-
-    return res, err
-
-end
-
--- 取得IP地址
-local function _get_addr(host)
--- @host    : string
--- @return  : ip?: string, err?: string
-    if host == "localhost" then return "127.0.0.1" end
-    return DNS_CACHE:get(host, nil, _get_addr_by_dns, host)
-end
 
 -- 类型声明
 --- HttpPart    : { name, mime?, type?, body?, data?, file? }
 --- HttpOption  : { url?, method?, body?, query?, headers?: map<string> }
 --- HttpOption  & { parts?: @HttpPart[], ssl_server_name?, ssl_verify?: boolean }
+--- HttpOption  & { ssl_client_cert?: cdata, ssl_client_priv_key?: cdata }
 --- HttpRespons : { status: number, reason, headers: map<string>, has_body: boolean, body }
 
-local function get_parts_body(parts)
+-- 生成表单数据
+local function gen_multipart_form(parts)
 -- @parts   : @HttpPart[]
 -- @return  : body: string, boundary: string
 
-    local body, i = {}, 0
+    local i    = 0
+    local body = _newt(#parts * 5, 0)
+    local md5  = ngx.md5("boundary" .. ngx.now()*1000)
 
-    local boundary = '---------------' .. ngx.now()*1000 .. '---------------'
+    local boundary = '--boundary--' .. md5 .. '--boundary--'
 
         i=i+1; body[i] = '--' .. boundary
 
@@ -189,10 +73,6 @@ local function _request(url, opt)
     --- url : string        // 类型改为字符串
     --- opt : @HttpOption
 
-    -- 解析请求链接
-    local  m, err = _parse_url(url)
-    if not m then return nil, err end
-
     opt = opt or {}
     opt.headers = opt.headers or {}
 
@@ -203,35 +83,30 @@ local function _request(url, opt)
     -- multipart/form-data 表单处理
     local parts = opt.parts
     if type(parts) == "table" and #parts > 0 then
-        local body, boundary = get_parts_body(parts)
-        opt.headers["Content-Type"] = "multipart/form-data; boundary="..boundary
+        local body, boundary, err = gen_multipart_form(parts)
+        if not body then return nil, err end
+        opt.headers["Content-Type"] = "multipart/form-data; boundary=" .. boundary
         opt.body = body
     end
 
     opt.method = opt.method or (opt.body and "POST") or "GET"
 
-    local httpc = http.new()
+    local res, err
 
-    -- 超时设置
-    httpc:set_timeouts(conn_timeout, send_timeout, read_timeout)
+    for _ = 1, 3 do
+        local httpc = http.new()
+        httpc:set_timeouts(conn_timeout, send_timeout, read_timeout)
 
-    -- 如果是IP地址直接请求
-    if _is_addr(m.host) then return httpc:request_uri(url, opt) end
+        res, err = httpc:request_uri(url, opt)
+        if res then break end
 
-    -- 通过域名取得IP地址
-    local  addr = _get_addr(m.host)
-    if not addr then return httpc:request_uri(url, opt) end
+        -- 输出错误日志
+        ngx.log(ngx.ERR, "request fail: ", err, "\n url:", url)
 
-    -- 替换域名为IP地址
-    url = m.scheme .. "://" .. addr .. m.port .. m.path
+        if err ~= "closed" then break end
+    end
 
-    -- 保留域名到请求头
-    opt.headers["Host"] = m.host .. m.port
-
-    -- 保留SNI: 用于SSL域名验证
-    if m.scheme == "https" then opt.ssl_server_name = m.host end
-
-    return httpc:request_uri(url, opt)
+    return res, err
 
 end
 
