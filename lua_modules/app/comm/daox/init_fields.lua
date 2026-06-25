@@ -1,6 +1,35 @@
 
--- 初始化列定义 v18.6.15 by Killsen ------------------
+-- 初始化列定义 v26.06.25 by Killsen ------------------
 
+-- 字段类型对应的默认值
+local DEFAULTS = {
+
+    -- 数值类型
+    tinyint     = 0,
+    smallint    = 0,
+    mediumint   = 0,
+    int         = 0,
+    bigint      = 0,
+    float       = 0,
+    double      = 0,
+    decimal     = 0,
+
+    -- 字符串类型
+    char        = "",
+    varchar     = "",
+    tinytext    = "",
+    text        = "",
+    mediumtext  = "",
+    longtext    = "",
+
+    -- 日期时间类型
+    date        = "1900-01-01",
+    time        = "00:00:00",
+    datetime    = "1900-01-01 00:00:00",
+
+}
+
+-- 初始化列定义
 local function init_fields(field_list)
 
     if type(field_list)~="table" then return end
@@ -17,18 +46,8 @@ local function init_fields(field_list)
             f.len  = "19,4"
         end
 
-        f.len  = f.len  or ( f.type=="varchar"  and 100             )
-                        or nil
-
-        f.def  = f.def  or ( f.type=="varchar"  and ""              )
-                        or ( f.type=="date"     and "1900-01-01"    )
-                        or ( f.type=="datetime" and "1900-01-01"    )
-                        or ( f.type=="int"      and 0               )
-                        or ( f.type=="double"   and 0               )
-                        or ( f.type=="decimal"  and 0               )
-                        or ( f.type=="boolean"  and 0               )
-                        or nil
-
+        f.len  = f.len  or (f.type=="varchar" and 100) or nil
+        f.def  = f.def  or DEFAULTS[f.type]
     --  f.pk   = (f.pk == true)
 
         f[1]=nil; f[2]=nil; f[3]=nil
