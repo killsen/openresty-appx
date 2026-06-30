@@ -1,5 +1,5 @@
 
--- Http请求 v26.04.02
+-- Http请求 v26.06.30
 
 local ngx       = ngx
 local type      = type
@@ -14,13 +14,17 @@ local conn_timeout = 1000 * 10  -- 连接超时 10 秒
 local send_timeout = 1000 * 90  -- 发送超时 90 秒
 local read_timeout = 1000 * 90  -- 读取超时 90 秒
 
-local USER_AGENT = [[Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36]]
+local USER_AGENT = [[Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0]]
 
 -- 类型声明
 --- HttpPart    : { name, mime?, type?, body?, data?, file? }
---- HttpOption  : { url?, method?, body?, query?, headers?: map<string> }
+
+--- HttpOption  : { url?, method?, body?, path?, query?, headers?: map<string> }
 --- HttpOption  & { parts?: @HttpPart[], ssl_server_name?, ssl_verify?: boolean }
 --- HttpOption  & { ssl_client_cert?: cdata, ssl_client_priv_key?: cdata }
+--- HttpOption  & { keepalive?: boolean, keepalive_timeout?: number, keepalive_pool?: number }
+--- HttpOption  & { conn_timeout?: number, send_timeout?: number, read_timeout?: number }
+
 --- HttpRespons : { status: number, reason, headers: map<string>, has_body: boolean, body }
 
 -- 生成表单数据
@@ -95,7 +99,12 @@ local function _request(url, opt)
 
     for _ = 1, 3 do
         local httpc = http.new()
-        httpc:set_timeouts(conn_timeout, send_timeout, read_timeout)
+
+        httpc:set_timeouts(
+            opt.conn_timeout or conn_timeout,   -- 连接超时 (单位毫秒)
+            opt.send_timeout or send_timeout,   -- 发送超时 (单位毫秒)
+            opt.read_timeout or read_timeout    -- 读取超时 (单位毫秒)
+        )
 
         res, err = httpc:request_uri(url, opt)
         if res then break end
