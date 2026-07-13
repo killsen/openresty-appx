@@ -1,5 +1,5 @@
 
--- 初始化列定义 v26.06.25 by Killsen ------------------
+-- 初始化列定义 v26.07.13 by Killsen ------------------
 
 -- 字段类型对应的默认值
 local DEFAULTS = {
@@ -29,6 +29,14 @@ local DEFAULTS = {
 
 }
 
+-- 创建 BLOB, TEXT, GEOMETRY 或 JSON 字段时不能指定默认值 v26.07.13
+local CREATE_NO_DEFAULT = {
+    tinytext    = true,
+    text        = true,
+    mediumtext  = true,
+    longtext    = true,
+}
+
 -- 初始化列定义
 local function init_fields(field_list)
 
@@ -49,6 +57,8 @@ local function init_fields(field_list)
         f.len  = f.len  or (f.type=="varchar" and 100) or nil
         f.def  = f.def  or DEFAULTS[f.type]
     --  f.pk   = (f.pk == true)
+
+        f["create_no_default"] = CREATE_NO_DEFAULT[f.type]
 
         f[1]=nil; f[2]=nil; f[3]=nil
     end

@@ -1,5 +1,5 @@
 
--- 新建dao v20.08.15 by Killsen ------------------------------------------------
+-- 新建dao v26.07.13 by Killsen ------------------------------------------------
 
 --【升级说明】v20.08.15
 -- 1) 修正检查是否有定义索引的bug v20.08.15
@@ -134,6 +134,9 @@ local function _create(table_name, table_desc, field_list)
         local _def  = f.def  and " default '" .. f.def .. "'"  or "" -- 默认值
         local _len  = f.len  and         " (" .. f.len .. ")"  or "" -- 长度
         local _desc = f.desc and " comment '" .. f.desc .. "'" or "" -- 备注
+
+        -- 创建 BLOB, TEXT, GEOMETRY 或 JSON 字段时不能指定默认值 v26.07.13
+        if f["create_no_default"] then _def = "" end
 
         i=i+1; fi [i] =  "     "
             .. "`" .. f.name .. "`" .. " "    .. f.type
