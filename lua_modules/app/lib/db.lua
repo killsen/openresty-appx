@@ -33,7 +33,7 @@ local _clone    = require "table.clone"
 local _spawn    = ngx.thread.spawn
 local _wait     = ngx.thread.wait
 
-local _M = { _VERSION = "v24.12.17" }
+local _M = { _VERSION = "v26.07.27" }
 local mt = {}
 
 --------------------------------------------------------------------------------
@@ -158,9 +158,6 @@ function _M.load(db_config, db_slave)
         DB_CONFIG[k] = v
     end
 
-    -- 自动创建数据库 v20.08.08
-    ngx.timer.at(0, _create_db)
-
     -- 主库（读写）
     DB_MASTER = DB_CONFIG
 
@@ -171,6 +168,9 @@ function _M.load(db_config, db_slave)
             DB_SLAVE[k] = v
         end
     end
+
+    -- 延时 1 秒自动创建数据库 v26.07.27
+    ngx.timer.at(1, _create_db)
 
 end
 
