@@ -1,5 +1,5 @@
 
--- 初始化数据库 v23.08.09
+-- 初始化数据库 v26.11.02
 
 local is_local  = require "app.comm.utils".is_local   -- 是否本机访问
 local file_list = require "app.comm.utils".file_list  -- lua文件列表
@@ -117,6 +117,9 @@ local function upgrade_table(app_name, dao_name, index, add_column, drop_column,
             local _def  = f.def  and " default '" .. f.def .. "'"  or "" -- 默认值
             local _len  = f.len  and         " (" .. f.len .. ")"  or "" -- 长度
             local _desc = f.desc and " comment '" .. f.desc .. "'" or "" -- 备注
+
+            -- 创建 BLOB, TEXT, GEOMETRY 或 JSON 字段时不能指定默认值 v26.11.02
+            if f["create_no_default"] then _def = "" end
 
             local after = ""
             if i > 1 then  -- 创建在前一个列的后面 v20.08.19
